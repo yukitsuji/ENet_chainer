@@ -138,9 +138,8 @@ class Block(chainer.Chain):
 
 class Bottleneck1(chainer.Chain):
     """Bottleneck1"""
-    def __init__(self, config, drop_ratio=0.1):
+    def __init__(self, config):
         super(Bottleneck1, self).__init__()
-        self.drop_ratio = drop_ratio
         config = config["bottle1"]
         config1 = config["block1"]
         config2 = config["block2"]
