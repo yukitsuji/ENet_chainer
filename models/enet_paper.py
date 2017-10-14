@@ -10,6 +10,7 @@ from chainercv.transforms import resize
 from chainercv.utils import download_model
 from spatial_dropout import spatial_dropout
 
+
 class ConvBN(chainer.Chain):
     """Convolution2D + Batch Normalization"""
     def __init__(self, in_ch, out_ch, ksize, stride=1, pad=1, dilation=1,
@@ -28,17 +29,21 @@ class ConvBN(chainer.Chain):
     def __call__(self, x):
         return self.bn(self.conv(x))
 
+
 class ConvBNPReLU(ConvBN):
     """Convolution2D + Batch Normalization + PReLU"""
     def __init__(self, in_ch, out_ch, ksize, stride=1, pad=1, dilation=1,
                  nobias=False):
         super(ConvBNPReLU, self).__init__(in_ch, out_ch, ksize, stride, pad,
                                           dilation, nobias)
-        with self.init_scope():
-            self.prelu = L.PReLU()
+
+        self.add_link("prelu", L.PReLU())
+        # with self.init_scope():
+        #     self.prelu = L.PReLU()
 
     def __call__(self, x):
         return self.prelu(self.bn(self.conv(x)))
+
 
 # class ConvBNPReLU(chainer.Chain):
 #     """Convolution2D + Batch Normalization + PReLU"""
@@ -58,6 +63,7 @@ class ConvBNPReLU(ConvBN):
 #
 #     def __call__(self, x):
 #         return self.prelu(self.bn(self.conv(x)))
+
 
 class SymmetricConvBNPReLU(chainer.Chain):
     """Convolution2D + Batch Normalization + PReLU"""
@@ -95,30 +101,71 @@ class InitialBlock(chainer.Chain):
         h = self.ib_bn(h)
         return self.ib_prelu(h)
 
+    def inference(self, x):
+        h1 = self.ib_conv(x)
+        h2 = F.max_pooling_2d(x, 2, 2)
+        h = F.concat((h1, h2), axis=1)
+        h = self.ib_bn(h)
+        return self.ib_prelu(h)
+
+
+# class Block(chainer.Chain):
+#     """Block Abstract"""
+#     def __init__(self, in_ch, mid_ch, out_ch, ksize=0, stride=0, pad=0,
+#                  dilation=1, drop_ratio=0.1, downsample=False, nobias=False,
+#                  symmetric=False):
+#         super(Bottleneck1, self).__init__()
+#         self.drop_ratio = drop_ratio
+#         self.downsample = downsample
+#         with self.init_scope():
+#             k1, k2, s1 = self.calc_param(downsample, symmetric)
+#             self.block1 = ConvBNPReLU(in_ch, mid_ch, k1, s1, 0, nobias=True)
+#             Conv_Block = SymmetricConvBNPReLU if symmetric else ConvBNPReLU
+#             self.block2 = Conv_Block(mid_ch, mid_ch, k2, 1, dilation, dilation,
+#                                      symmetric=symmetric, nobias=False)
+#             self.block3 = ConvBN(mid_ch, out_ch, 1, 1, 0, nobias=True)
+#             self.prelu = L.PReLU()
+#             if downsample:
+#                 self.conv = L.Convolution2D(in_ch, out_ch, 1, 1, 0, nobias=True)
+#                 self.bn = L.BatchNormalization(out_ch, eps=1e-5, decay=0.95)
 
 class Block(chainer.Chain):
     """Block Abstract"""
-    def __init__(self, in_ch, mid_ch, out_ch, ksize=0, stride=0, pad=0,
-                 dilation=1, drop_ratio=0.1, downsample=False, nobias=False,
-                 symmetric=False):
-        super(Bottleneck1, self).__init__()
-        self.drop_ratio = drop_ratio
-        self.downsample = downsample
+    def __init__(self, config):
+        super(Block, self).__init__()
+        self.initialize_param()
+        self.parse_config(config)
+        k1, k2, s1 = self.calc_param()
+
         with self.init_scope():
-            k1, k2, s1 = self.calc_param(downsample, symmetric)
-            self.block1 = ConvBNPReLU(in_ch, mid_ch, k1, s1, 0, nobias=True)
-            Conv_Block = SymmetricConvBNPReLU if symmetric else ConvBNPReLU
-            self.block2 = Conv_Block(mid_ch, mid_ch, k2, 1, dilation, dilation,
-                                     symmetric=symmetric, nobias=False)
-            self.block3 = ConvBN(mid_ch, out_ch, 1, 1, 0, nobias=True)
+            self.block1 = ConvBNPReLU(self.in_ch, self.mid_ch, k1, s1, 0,
+                                      nobias=True)
+            ConvBlock = SymmetricConvBNPReLU if self.symmetric else ConvBNPReLU
+            self.block2 = ConvBlock(self.mid_ch, self.mid_ch, k2, 1, dilation,
+                                    dilation, symmetric=symmetric, nobias=False)
+            self.block3 = ConvBN(self.mid_ch, self.out_ch, 1, 1, 0, nobias=True)
             self.prelu = L.PReLU()
             if downsample:
-                self.conv = L.Convolution2D(in_ch, out_ch, 1, 1, 0, nobias=True)
-                self.bn = L.BatchNormalization(out_ch, eps=1e-5, decay=0.95)
+                self.conv = L.Convolution2D(self.in_ch, self.out_ch, 1, 1, 0, nobias=True)
+                self.bn = L.BatchNormalization(self.out_ch, eps=1e-5, decay=0.95)
 
-    def calc_param(self, downsample, symmetric):
-        k1, s1 = (2, 2) if downsample else (1, 1)
-        k2 = 5 if symmetric else 3
+    def initialize_param(config):
+        self.ksize = 1
+        self.stride = 0
+        self.pad = 0
+        self.dilation = 1
+        self.drop_ratio = 0.1
+        self.downsample = False
+        self.nobias = False
+        self.symmetric = False
+
+    def parse_config(config):
+        for key, value in config.items():
+            setattr(self, key, value)
+
+    def calc_param(self):
+        k1, s1 = (2, 2) if self.downsample else (1, 1)
+        k2 = 5 if self.symmetric else 3
         return k1, k2, s1
 
     def __call__(self, x):
@@ -136,6 +183,37 @@ class Block(chainer.Chain):
         h1 = h1 if not self.downsample else h1 + self.bn(self.conv(x))
         return self.prelu(h1)
 
+
+class Bottleneck(chainer.Chain):
+    """Bottleneck Abstract"""
+    def __init__(self, config):
+        super(Bottleneck, self).__init__()
+        model_config = config["architecture"]
+        for index, name in enumerate(model_config.keys()):
+            c = model_config[name]
+            block = c["type"]
+        # config = config["bottle1"]
+        # config1 = config["block1"]
+        # config2 = config["block2"]
+        # config3 = config["block3"]
+        # config4 = config["block4"]
+        # config5 = config["block5"]
+        with self.init_scope():
+            self.block1 = Block(config1)
+            self.block2 = Block(config2)
+            self.block3 = Block(config3)
+            self.block4 = Block(config4)
+            self.block5 = Block(config5)
+
+    def __call__(self, x):
+        x = self.block1(x)
+        x = self.block2(x)
+        x = self.block3(x)
+        x = self.block4(x)
+        x = self.block5(x)
+        return x
+
+
 class Bottleneck1(chainer.Chain):
     """Bottleneck1"""
     def __init__(self, config):
@@ -145,24 +223,47 @@ class Bottleneck1(chainer.Chain):
         config2 = config["block2"]
         config3 = config["block3"]
         config4 = config["block4"]
+        config5 = config["block5"]
         with self.init_scope():
             self.block1 = Block(config1)
             self.block2 = Block(config2)
             self.block3 = Block(config3)
             self.block4 = Block(config4)
+            self.block5 = Block(config5)
 
     def __call__(self, x):
         x = self.block1(x)
         x = self.block2(x)
         x = self.block3(x)
+        x = self.block4(x)
+        x = self.block5(x)
+        return x
+
 
 class Bottleneck2(chainer.Chain):
 
     def __init__(self):
-        pass
+        super(Bottleneck2, self).__init__()
+        config = config["bottle2"]
+        config1 = config["block1"]
+        config2 = config["block2"]
+        config3 = config["block3"]
+        config4 = config["block4"]
+        config5 = config["block5"]
+        with self.init_scope():
+            self.block1 = Block(config1)
+            self.block2 = Block(config2)
+            self.block3 = Block(config3)
+            self.block4 = Block(config4)
+            self.block5 = Block(config5)
 
-    def __call__(self):
-        pass
+    def __call__(self, x):
+        x = self.block1(x)
+        x = self.block2(x)
+        x = self.block3(x)
+        x = self.block4(x)
+        x = self.block5(x)
+        return x
 
 class Bottleneck4(chainer.Chain):
 
@@ -187,9 +288,7 @@ class ENetBasic(chainer.Chain):
             'n_class': 11,
         }
         'cityscapes' : {
-            'n_class' : 19,
-        }
-    }
+            'n_class' : 19}}
 
     def __init__(self, n_class=None, pretrained_model=None, initialW=None,
                  model_config=None, remove_dec=False):
@@ -202,22 +301,26 @@ class ENetBasic(chainer.Chain):
         if model_config is None:
             raise ValueError(
                 'The model config needs to be supplied as an argument.')
-        else:
-            config1 = model_config['bottle1']
-            config2 = model_config['bottle2']
-            config3 = model_config['bottle3']
-            if not remove_dec:
-                config4 = model_config['bottle4']
-                config5 = model_config['bottle5']
+
+        enc_config = model_config["enc_config"]
+        dec_config = model_config["dec_config"]
+        config_init = enc_config["initial"]
+        config1 = enc_config['bottle1']
+        config2 = enc_config['bottle2']
+        config3 = enc_config['bottle3']
+        if not remove_dec:
+            config4 = enc_config['bottle4']
+            config5 = enc_config['bottle5']
 
         if initialW is None:
             initialW = chainer.initializers.HeNormal()
 
         super(ENetBasic, self).__init__()
         with self.init_scope():
-            self.bottle1 = Bottleneck1()
-            self.bottle2 = Bottleneck2()
-            self.bottle3 = Bottleneck2()
+            self.init_block = InitialBlock(config_init)
+            self.bottle1 = Bottleneck1(config1)
+            self.bottle2 = Bottleneck2(config2)
+            self.bottle3 = Bottleneck2(config3)
             if remove_dec:
                 self.deconv5
             else:
@@ -241,7 +344,6 @@ class ENetBasic(chainer.Chain):
     def decoder(self, x):
         h = self.bottle4(x)
         h = self.bottle5(x)
-
 
     def __call__(self, x):
         """Compute an image-wise score from a batch of images
