@@ -11,18 +11,26 @@ from chainercv.utils import download_model
 from spatial_dropout import spatial_dropout
 
 
+def _without_cudnn(f, x):
+    with chainer.using_config('use_cudnn', 'never'):
+        return f(x)
+
 class ConvBN(chainer.Chain):
     """Convolution2D + Batch Normalization"""
     def __init__(self, in_ch, out_ch, ksize, stride=1, pad=1, dilation=1,
-                 nobias=False):
+                 nobias=False, upsample=False):
         super(ConvBN, self).__init__()
         with self.init_scope():
-            if dilation > 1:
-                self.conv = L.DilatedConvolution2D(
-                    in_ch, out_ch, ksize, stride, pad, dilation, nobias=nobias)
+            if upsample:
+                self.conv = L.Deconvolution2D(
+                                in_ch, out_ch, ksize, stride, pad, nobias=nobias)
             else:
-                self.conv = L.Convolution2D(
-                    in_ch, out_ch, ksize, stride, pad, nobias=nobias)
+                if dilation > 1:
+                    self.conv = L.DilatedConvolution2D(
+                        in_ch, out_ch, ksize, stride, pad, dilation, nobias=nobias)
+                else:
+                    self.conv = L.Convolution2D(
+                        in_ch, out_ch, ksize, stride, pad, nobias=nobias)
 
             self.bn = L.BatchNormalization(out_ch, eps=1e-5, decay=0.95)
 
@@ -33,9 +41,9 @@ class ConvBN(chainer.Chain):
 class ConvBNPReLU(ConvBN):
     """Convolution2D + Batch Normalization + PReLU"""
     def __init__(self, in_ch, out_ch, ksize, stride=1, pad=1, dilation=1,
-                 nobias=False):
+                 nobias=False, upsample=False):
         super(ConvBNPReLU, self).__init__(in_ch, out_ch, ksize, stride, pad,
-                                          dilation, nobias)
+                                          dilation, nobias, upsample)
 
         self.add_link("prelu", L.PReLU())
         # with self.init_scope():
@@ -141,23 +149,32 @@ class Block(chainer.Chain):
             self.block1 = ConvBNPReLU(self.in_ch, self.mid_ch, k1, s1, 0,
                                       nobias=True)
             ConvBlock = SymmetricConvBNPReLU if self.symmetric else ConvBNPReLU
-            self.block2 = ConvBlock(self.mid_ch, self.mid_ch, k2, 1, dilation,
-                                    dilation, symmetric=symmetric, nobias=False)
+            self.block2 = ConvBlock(self.mid_ch, self.mid_ch, k2, 1,
+                                    self.dilation, self.dilation,
+                                    nobias=False, symmetric=self.symmetric,
+                                    upsample=self.upsample)
             self.block3 = ConvBN(self.mid_ch, self.out_ch, 1, 1, 0, nobias=True)
             self.prelu = L.PReLU()
-            if downsample:
+            if self.downsample:
                 self.conv = L.Convolution2D(self.in_ch, self.out_ch, 1, 1, 0, nobias=True)
                 self.bn = L.BatchNormalization(self.out_ch, eps=1e-5, decay=0.95)
+            if self.upsample:
+                self.p =
 
     def initialize_param(config):
+        self.in_ch = 0
+        self.mid_ch = 0
+        self.out_ch = 0
         self.ksize = 1
         self.stride = 0
         self.pad = 0
         self.dilation = 1
         self.drop_ratio = 0.1
         self.downsample = False
+        self.upsample = False
         self.nobias = False
         self.symmetric = False
+        self.p = False
 
     def parse_config(config):
         for key, value in config.items():
@@ -168,12 +185,28 @@ class Block(chainer.Chain):
         k2 = 5 if self.symmetric else 3
         return k1, k2, s1
 
+    def _upsampling_2d(self, x, pool):
+        if x.shape != pool.indexes.shape:
+            min_h = min(x.shape[2], pool.indexes.shape[2])
+            min_w = min(x.shape[3], pool.indexes.shape[3])
+            x = x[:, :, :min_h, :min_w]
+            pool.indexes = pool.indexes[:, :, :min_h, :min_w]
+        outsize = (x.shape[2] * 2, x.shape[3] * 2)
+        return F.upsampling_2d(
+            x, pool.indexes, ksize=(pool.kh, pool.kw),
+            stride=(pool.sy, pool.sx), pad=(pool.ph, pool.pw), outsize=outsize)
+
     def __call__(self, x):
         h1 = self.block1(x)
         h1 = self.block2(h1)
         h1 = self.block3(h1)
         h1 = spatial_dropout(h1, drop_ratio)
-        h1 = h1 if not self.downsample else h1 + self.bn(self.conv(x))
+        if self.downsample:
+            p = F.MaxPooling2D(2, 2)
+            h1 += self.bn(self.conv(_without_cudnn(p, x)))
+        elif self.upsample:
+            h1 += self._upsampling_2d(self.conv(self.bn(x)), self.p)
+        # h1 = h1 if not self.downsample else h1 + self.bn(self.conv(x))
         return self.prelu(h1)
 
     def inference(self, x):
@@ -183,34 +216,49 @@ class Block(chainer.Chain):
         h1 = h1 if not self.downsample else h1 + self.bn(self.conv(x))
         return self.prelu(h1)
 
+class FullConv(chain.Chain):
+    """Last Layer"""
+    def __init__(self):
+        pass
 
-class Bottleneck(chainer.Chain):
-    """Bottleneck Abstract"""
+    def __call__(self):
+        pass
+
+
+class Architecture(chainer.Chain):
+    """Architecture Abstract"""
     def __init__(self, config):
         super(Bottleneck, self).__init__()
         model_config = config["architecture"]
-        for index, name in enumerate(model_config.keys()):
-            c = model_config[name]
-            block = c["type"]
-        # config = config["bottle1"]
-        # config1 = config["block1"]
-        # config2 = config["block2"]
-        # config3 = config["block3"]
-        # config4 = config["block4"]
-        # config5 = config["block5"]
-        with self.init_scope():
-            self.block1 = Block(config1)
-            self.block2 = Block(config2)
-            self.block3 = Block(config3)
-            self.block4 = Block(config4)
-            self.block5 = Block(config5)
+        self.layers = []
+        for key in model_config.keys():
+            c = model_config[key]
+            Model = self.get_model(c["type"])
+            num_loop = 1 if not "loop" in c.keys() else c["loop"]
+            for i in range(num_loop):
+                name = key + "_{}".format(i + 1)
+                self.add_link(name, Model(c["args"]))
+                self.layers.append(getattr(self, name))
+
+    def get_model(self, model_type):
+        if model_type == "initial":
+            return InitialBlock
+        elif model_type == "block":
+            return Block
+        elif model_type == "bottleneck1":
+            return Bottleneck1
+        elif model_type == "bottleneck2":
+            return Bottleneck2
+        elif model_type == "bottleneck3":
+            return Bottleneck3
+        elif model_type == "bottleneck4":
+            return Bottleneck4
+        elif model_type == "bottleneck5":
+            return Bottlenec5
 
     def __call__(self, x):
-        x = self.block1(x)
-        x = self.block2(x)
-        x = self.block3(x)
-        x = self.block4(x)
-        x = self.block5(x)
+        for layer in self.layers:
+            x = layer(x)
         return x
 
 

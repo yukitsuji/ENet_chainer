@@ -19,110 +19,47 @@ model:
         out_ch: 13
         ksize: 3
         stride: 2
+        pad: 1
         nobias: False
 
     bottleneck1_0:
-      type: bottleneck1
+      type: block
       args:
         in_ch: 16
         mid_ch: 16
         out_ch: 64
+        downsample: True
+        drop_ratio: 0.01
 
     bottleneck1_1:
-      type: bottleneck1
+      type: block
       loop: 4
       args:
         in_ch: 64
         mid_ch: 16
         out_ch: 64
+        drop_ratio: 0.01
 
     bottleneck2_0:
-      type: bottleneck1
-      loop: 4
+      type: block
       args:
         in_ch: 64
-        mid_ch: 16
-        out_ch: 64
+        mid_ch: 32
+        out_ch: 128
+        downsample: 1
 
-    bottleneck1_1:
-      type: bottleneck1
-      loop: 4
+    bottleneck2_1:
+      type: bottleneck2
+      loop: 2
       args:
-        in_ch: 64
-        mid_ch: 16
-        out_ch: 64
+        in_ch: 128
+        mid_ch: 32
+        out_ch: 128
 
-    bottleneck1_1:
-      type: bottleneck1
-      loop: 4
+    fullconv:
+      type: fullconv
       args:
-        in_ch: 64
-        mid_ch: 16
-        out_ch: 64
-
-    bottleneck1_1:
-      type: bottleneck1
-      loop: 4
-      args:
-        in_ch: 64
-        mid_ch: 16
-        out_ch: 64
-
-    bottleneck1_1:
-      type: bottleneck1
-      loop: 4
-      args:
-        in_ch: 64
-        mid_ch: 16
-        out_ch: 64
-
-    bottleneck1_1:
-      type: bottleneck1
-      loop: 4
-      args:
-        in_ch: 64
-        mid_ch: 16
-        out_ch: 64
-
-    bottleneck1_1:
-      type: bottleneck1
-      loop: 4
-      args:
-        in_ch: 64
-        mid_ch: 16
-        out_ch: 64
-
-    bottleneck1_1:
-      type: bottleneck1
-      loop: 4
-      args:
-        in_ch: 64
-        mid_ch: 16
-        out_ch: 64
-
-    bottleneck1_1:
-      type: bottleneck1
-      loop: 4
-      args:
-        in_ch: 64
-        mid_ch: 16
-        out_ch: 64
-
-    bottleneck1_1:
-      type: bottleneck1
-      loop: 4
-      args:
-        in_ch: 64
-        mid_ch: 16
-        out_ch: 64
-
-    bottleneck1_1:
-      type: bottleneck1
-      loop: 4
-      args:
-        in_ch: 64
-        mid_ch: 16
-        out_ch: 64
+        in_ch: 128
   use_dec: False
 
 model:
