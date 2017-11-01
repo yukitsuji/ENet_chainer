@@ -23,6 +23,8 @@ import chainer
 from chainer import iterators
 from chainer.training import extensions
 
+from models import enet_paper
+
 from collections import OrderedDict
 yaml.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
     lambda loader, node: OrderedDict(loader.construct_pairs(node)))
@@ -224,27 +226,9 @@ def load_dataset(config):
         loader = getattr(mot_loader, config['loader']['name'])
         return loader(**config['loader']['args'])
 
-def get_rnn_model(config):
-    Model = getattr(rnn_predictor, config['name'])
-    return Model(**config["args"])
+def get_enet_model(config):
+    Model = getattr(enet_paper, config['name'])
+    return Model(config["architecture"])
 
-def get_da_model(config):
-    Model = getattr(da_predictor, config['name'])
-    return Model(**config['args'])
-
-def get_siamese_model(config):
-    Model = getattr(siamese_predictor, config['name'])
-    return Model(**config['args'])
 
 def get_model(config, model_type=None):
-    if model_type == "rnn":
-        return get_rnn_model(config['rnn']) if 'rnn' in config.keys() else None
-    elif model_type == "da":
-        return get_da_model(config['da']) if 'da' in config.keys() else None
-    elif model_type == "bd":
-        return get_bd_model(config['bd']) if 'bd' in config.keys() else None
-    elif model_type == "siamese":
-        return get_siamese_model(config['siamese']) if 'siamese' in config.keys() else None
-    else:
-        sys.stderr.write("Please set model_type from 'rnn/da/bd/siamese'\n")
-        exit()

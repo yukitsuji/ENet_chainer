@@ -12,7 +12,8 @@ mode: Train
 seed: 1
 
 model:
-  enet:
+  name: ENetBasic
+  architecture:
     initial_block:
       type: initial
       args:

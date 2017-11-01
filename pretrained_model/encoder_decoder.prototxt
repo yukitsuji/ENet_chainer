@@ -1,15 +1,16 @@
 name: "ENet"
 layer {
   name: "data"
-  type: "Input"
+  type: "DenseImageData"
   top: "data"
-  input_param {
-    shape {
-      dim: 1
-      dim: 3
-      dim: 512
-      dim: 1024
-    }
+  top: "label"
+  dense_image_data_param {
+    source: "ENet/dataset/train_fine_2columns.txt"
+    batch_size: 3
+    shuffle: true
+    new_height: 512
+    new_width: 1024
+    label_divide_factor: 1
   }
 }
 layer {
@@ -71,7 +72,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -117,7 +118,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -164,7 +165,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -210,7 +211,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -221,7 +222,7 @@ layer {
   python_param {
     module: "spatial_dropout"
     layer: "SpatialDropoutLayer"
-    param_str: "{\'phase\': \'TEST\', \'p\': \'0.01\'}"
+    param_str: "{\'phase\': \'TRAIN\', \'p\': \'0.01\'}"
   }
 }
 layer {
@@ -273,7 +274,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -326,7 +327,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -373,7 +374,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -419,7 +420,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -430,7 +431,7 @@ layer {
   python_param {
     module: "spatial_dropout"
     layer: "SpatialDropoutLayer"
-    param_str: "{\'phase\': \'TEST\', \'p\': \'0.01\'}"
+    param_str: "{\'phase\': \'TRAIN\', \'p\': \'0.01\'}"
   }
 }
 layer {
@@ -483,7 +484,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -530,7 +531,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -576,7 +577,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -587,7 +588,7 @@ layer {
   python_param {
     module: "spatial_dropout"
     layer: "SpatialDropoutLayer"
-    param_str: "{\'phase\': \'TEST\', \'p\': \'0.01\'}"
+    param_str: "{\'phase\': \'TRAIN\', \'p\': \'0.01\'}"
   }
 }
 layer {
@@ -640,7 +641,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -687,7 +688,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -733,7 +734,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -744,7 +745,7 @@ layer {
   python_param {
     module: "spatial_dropout"
     layer: "SpatialDropoutLayer"
-    param_str: "{\'phase\': \'TEST\', \'p\': \'0.01\'}"
+    param_str: "{\'phase\': \'TRAIN\', \'p\': \'0.01\'}"
   }
 }
 layer {
@@ -797,7 +798,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -844,7 +845,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -890,7 +891,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -901,7 +902,7 @@ layer {
   python_param {
     module: "spatial_dropout"
     layer: "SpatialDropoutLayer"
-    param_str: "{\'phase\': \'TEST\', \'p\': \'0.01\'}"
+    param_str: "{\'phase\': \'TRAIN\', \'p\': \'0.01\'}"
   }
 }
 layer {
@@ -954,7 +955,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -1001,7 +1002,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -1047,7 +1048,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -1058,7 +1059,7 @@ layer {
   python_param {
     module: "spatial_dropout"
     layer: "SpatialDropoutLayer"
-    param_str: "{\'phase\': \'TEST\', \'p\': \'0.1\'}"
+    param_str: "{\'phase\': \'TRAIN\', \'p\': \'0.1\'}"
   }
 }
 layer {
@@ -1110,7 +1111,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -1163,7 +1164,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -1210,7 +1211,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -1256,7 +1257,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -1267,7 +1268,7 @@ layer {
   python_param {
     module: "spatial_dropout"
     layer: "SpatialDropoutLayer"
-    param_str: "{\'phase\': \'TEST\', \'p\': \'0.1\'}"
+    param_str: "{\'phase\': \'TRAIN\', \'p\': \'0.1\'}"
   }
 }
 layer {
@@ -1320,7 +1321,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -1368,7 +1369,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -1414,7 +1415,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -1425,7 +1426,7 @@ layer {
   python_param {
     module: "spatial_dropout"
     layer: "SpatialDropoutLayer"
-    param_str: "{\'phase\': \'TEST\', \'p\': \'0.1\'}"
+    param_str: "{\'phase\': \'TRAIN\', \'p\': \'0.1\'}"
   }
 }
 layer {
@@ -1478,7 +1479,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -1543,7 +1544,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -1589,7 +1590,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -1600,7 +1601,7 @@ layer {
   python_param {
     module: "spatial_dropout"
     layer: "SpatialDropoutLayer"
-    param_str: "{\'phase\': \'TEST\', \'p\': \'0.1\'}"
+    param_str: "{\'phase\': \'TRAIN\', \'p\': \'0.1\'}"
   }
 }
 layer {
@@ -1653,7 +1654,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -1701,7 +1702,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -1747,7 +1748,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -1758,7 +1759,7 @@ layer {
   python_param {
     module: "spatial_dropout"
     layer: "SpatialDropoutLayer"
-    param_str: "{\'phase\': \'TEST\', \'p\': \'0.1\'}"
+    param_str: "{\'phase\': \'TRAIN\', \'p\': \'0.1\'}"
   }
 }
 layer {
@@ -1811,7 +1812,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -1858,7 +1859,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -1904,7 +1905,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -1915,7 +1916,7 @@ layer {
   python_param {
     module: "spatial_dropout"
     layer: "SpatialDropoutLayer"
-    param_str: "{\'phase\': \'TEST\', \'p\': \'0.1\'}"
+    param_str: "{\'phase\': \'TRAIN\', \'p\': \'0.1\'}"
   }
 }
 layer {
@@ -1968,7 +1969,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -2016,7 +2017,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -2062,7 +2063,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -2073,7 +2074,7 @@ layer {
   python_param {
     module: "spatial_dropout"
     layer: "SpatialDropoutLayer"
-    param_str: "{\'phase\': \'TEST\', \'p\': \'0.1\'}"
+    param_str: "{\'phase\': \'TRAIN\', \'p\': \'0.1\'}"
   }
 }
 layer {
@@ -2126,7 +2127,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -2191,7 +2192,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -2237,7 +2238,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -2248,7 +2249,7 @@ layer {
   python_param {
     module: "spatial_dropout"
     layer: "SpatialDropoutLayer"
-    param_str: "{\'phase\': \'TEST\', \'p\': \'0.1\'}"
+    param_str: "{\'phase\': \'TRAIN\', \'p\': \'0.1\'}"
   }
 }
 layer {
@@ -2301,7 +2302,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -2349,7 +2350,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -2395,7 +2396,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -2406,7 +2407,7 @@ layer {
   python_param {
     module: "spatial_dropout"
     layer: "SpatialDropoutLayer"
-    param_str: "{\'phase\': \'TEST\', \'p\': \'0.1\'}"
+    param_str: "{\'phase\': \'TRAIN\', \'p\': \'0.1\'}"
   }
 }
 layer {
@@ -2459,7 +2460,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -2506,7 +2507,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -2552,7 +2553,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -2563,7 +2564,7 @@ layer {
   python_param {
     module: "spatial_dropout"
     layer: "SpatialDropoutLayer"
-    param_str: "{\'phase\': \'TEST\', \'p\': \'0.1\'}"
+    param_str: "{\'phase\': \'TRAIN\', \'p\': \'0.1\'}"
   }
 }
 layer {
@@ -2616,7 +2617,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -2664,7 +2665,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -2710,7 +2711,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -2721,7 +2722,7 @@ layer {
   python_param {
     module: "spatial_dropout"
     layer: "SpatialDropoutLayer"
-    param_str: "{\'phase\': \'TEST\', \'p\': \'0.1\'}"
+    param_str: "{\'phase\': \'TRAIN\', \'p\': \'0.1\'}"
   }
 }
 layer {
@@ -2774,7 +2775,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -2839,7 +2840,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -2885,7 +2886,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -2896,7 +2897,7 @@ layer {
   python_param {
     module: "spatial_dropout"
     layer: "SpatialDropoutLayer"
-    param_str: "{\'phase\': \'TEST\', \'p\': \'0.1\'}"
+    param_str: "{\'phase\': \'TRAIN\', \'p\': \'0.1\'}"
   }
 }
 layer {
@@ -2949,7 +2950,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -2997,7 +2998,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -3043,7 +3044,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -3054,7 +3055,7 @@ layer {
   python_param {
     module: "spatial_dropout"
     layer: "SpatialDropoutLayer"
-    param_str: "{\'phase\': \'TEST\', \'p\': \'0.1\'}"
+    param_str: "{\'phase\': \'TRAIN\', \'p\': \'0.1\'}"
   }
 }
 layer {
@@ -3107,7 +3108,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -3154,7 +3155,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -3200,7 +3201,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -3211,7 +3212,7 @@ layer {
   python_param {
     module: "spatial_dropout"
     layer: "SpatialDropoutLayer"
-    param_str: "{\'phase\': \'TEST\', \'p\': \'0.1\'}"
+    param_str: "{\'phase\': \'TRAIN\', \'p\': \'0.1\'}"
   }
 }
 layer {
@@ -3264,7 +3265,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -3312,7 +3313,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -3358,7 +3359,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -3369,7 +3370,7 @@ layer {
   python_param {
     module: "spatial_dropout"
     layer: "SpatialDropoutLayer"
-    param_str: "{\'phase\': \'TEST\', \'p\': \'0.1\'}"
+    param_str: "{\'phase\': \'TRAIN\', \'p\': \'0.1\'}"
   }
 }
 layer {
@@ -3422,7 +3423,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -3487,7 +3488,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -3533,7 +3534,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -3544,7 +3545,7 @@ layer {
   python_param {
     module: "spatial_dropout"
     layer: "SpatialDropoutLayer"
-    param_str: "{\'phase\': \'TEST\', \'p\': \'0.1\'}"
+    param_str: "{\'phase\': \'TRAIN\', \'p\': \'0.1\'}"
   }
 }
 layer {
@@ -3597,7 +3598,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -3645,7 +3646,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -3691,7 +3692,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -3702,7 +3703,7 @@ layer {
   python_param {
     module: "spatial_dropout"
     layer: "SpatialDropoutLayer"
-    param_str: "{\'phase\': \'TEST\', \'p\': \'0.1\'}"
+    param_str: "{\'phase\': \'TRAIN\', \'p\': \'0.1\'}"
   }
 }
 layer {
@@ -3755,7 +3756,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -3798,7 +3799,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -3844,7 +3845,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -3855,7 +3856,7 @@ layer {
   python_param {
     module: "spatial_dropout"
     layer: "SpatialDropoutLayer"
-    param_str: "{\'phase\': \'TEST\', \'p\': \'0.1\'}"
+    param_str: "{\'phase\': \'TRAIN\', \'p\': \'0.1\'}"
   }
 }
 layer {
@@ -3895,7 +3896,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -3958,7 +3959,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -4005,7 +4006,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -4051,7 +4052,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -4062,7 +4063,7 @@ layer {
   python_param {
     module: "spatial_dropout"
     layer: "SpatialDropoutLayer"
-    param_str: "{\'phase\': \'TEST\', \'p\': \'0.1\'}"
+    param_str: "{\'phase\': \'TRAIN\', \'p\': \'0.1\'}"
   }
 }
 layer {
@@ -4115,7 +4116,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -4162,7 +4163,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -4208,7 +4209,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -4219,7 +4220,7 @@ layer {
   python_param {
     module: "spatial_dropout"
     layer: "SpatialDropoutLayer"
-    param_str: "{\'phase\': \'TEST\', \'p\': \'0.1\'}"
+    param_str: "{\'phase\': \'TRAIN\', \'p\': \'0.1\'}"
   }
 }
 layer {
@@ -4272,7 +4273,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -4315,7 +4316,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -4361,7 +4362,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -4372,7 +4373,7 @@ layer {
   python_param {
     module: "spatial_dropout"
     layer: "SpatialDropoutLayer"
-    param_str: "{\'phase\': \'TEST\', \'p\': \'0.1\'}"
+    param_str: "{\'phase\': \'TRAIN\', \'p\': \'0.1\'}"
   }
 }
 layer {
@@ -4412,7 +4413,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -4475,7 +4476,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -4522,7 +4523,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -4568,7 +4569,7 @@ layer {
       type: "constant"
       value: 0.001
     }
-    bn_mode: INFERENCE
+    bn_mode: LEARN
   }
 }
 layer {
@@ -4579,7 +4580,7 @@ layer {
   python_param {
     module: "spatial_dropout"
     layer: "SpatialDropoutLayer"
-    param_str: "{\'phase\': \'TEST\', \'p\': \'0.1\'}"
+    param_str: "{\'phase\': \'TRAIN\', \'p\': \'0.1\'}"
   }
 }
 layer {
@@ -4607,3 +4608,23 @@ layer {
     stride: 2
   }
 }
+layer {
+  name: "loss"
+  type: "SoftmaxWithLoss"
+  bottom: "deconv6_0_0"
+  bottom: "label"
+  top: "loss"
+  loss_param {
+    ignore_label: 255
+    weight_by_label_freqs: false
+  }
+}
+layer {
+  name: "accuracy"
+  type: "Accuracy"
+  bottom: "deconv6_0_0"
+  bottom: "label"
+  top: "accuracy"
+  top: "per_class_accuracy"
+}
+

@@ -12,7 +12,7 @@ import chainer
 from chainer import cuda, optimizers, serializers
 from chainer import training
 
-from iou_tracker.config_utils import *
+from enet.config_utils import *
 
 chainer.cuda.set_max_workspace_size(1024 * 1024 * 1024)
 os.environ["CHAINER_TYPE_CHECK"] = "0"
@@ -27,7 +27,7 @@ from models import enet_paper
 def train_enet():
     """Training ENet."""
     config = parse_args()
-    rnn_predictor = get_model(config["model"], model_type="rnn")
+    rnn_predictor = get_model(config["model"])
     train_data, test_data = load_dataset(config["dataset"])
     train_iter, test_iter = create_iterator(train_data, test_data, config['iterator'])
     optimizer = create_optimizer(config['optimizer'], rnn_predictor)
