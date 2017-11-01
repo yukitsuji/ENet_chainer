@@ -1,0 +1,10 @@
+data/*
+tmp.py
+__pycache__/*
+*.c
+*.so
+*.pyc
+results
+build
+*_img
+*.caffemodel

@@ -10,7 +10,7 @@ import re
 import numpy as np
 from google.protobuf import text_format
 
-import caffe_pb2
+import converter.caffe_pb2
 import chainer
 import chainer.links as L
 import pspnet

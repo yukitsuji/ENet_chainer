@@ -1,6 +1,22 @@
 #!/usr/env/bin python3
+# -*- coding: utf-8 -*-
+
 import argparse
+import numpy as np
+import sys
+import subprocess
+import os
 import yaml
+
+import chainer
+from chainer import cuda, optimizers, serializers
+from chainer import training
+
+from iou_tracker.config_utils import *
+
+chainer.cuda.set_max_workspace_size(1024 * 1024 * 1024)
+os.environ["CHAINER_TYPE_CHECK"] = "0"
+
 
 from collections import OrderedDict
 yaml.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
@@ -8,17 +24,23 @@ yaml.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
 
 from models import enet_paper
 
-def get_trainer(args):
-    config = yaml.load(file(args.config))
-    model_config = config["model"]
-    data_config = config["dataset"]
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='ENet')
-    parser.add_argument('--config', type=str)
-    parser.add_argument('--gpu', action='store_true')
-    parser.add_argument('--result_dir', type=str, default="./results")
-    parser.add_argument('--resume', type=str, default=None)
-    args = parser.parse_args()
-    trainer = get_trainer(args)
+def train_enet():
+    """Training ENet."""
+    config = parse_args()
+    rnn_predictor = get_model(config["model"], model_type="rnn")
+    train_data, test_data = load_dataset(config["dataset"])
+    train_iter, test_iter = create_iterator(train_data, test_data, config['iterator'])
+    optimizer = create_optimizer(config['optimizer'], rnn_predictor)
+    args = {}
+    updater = create_updater(train_iter, optimizer, config['updater'], args)
+    trainer = training.Trainer(updater, config['end_trigger'], out=config['results'])
+    trainer = create_extension(trainer, test_iter,  rnn_predictor, config['extension'])
     trainer.run()
+    chainer.serializers.save_npz(os.path.join(config['results'], 'rnn_predictor.npz'),
+                                 rnn_predictor)
+
+def main():
+    train_enet()
+
+if __name__ == '__main__':
+    main()

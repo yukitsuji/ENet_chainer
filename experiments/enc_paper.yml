@@ -1,7 +1,3 @@
-
-stop_trigger: [90000, "iteration"]
-# max_workspace_size: 256
-
 """
 Blockの中身は基本いじらない
 Bottleneckの構成を色々試してみる
@@ -9,9 +5,14 @@ Bottleneckの構成を色々試してみる
 typeでBlockまたはBottleneckを設定できる
 Bottlenecで対応可能なparamは、Defaultのみ
 """
+end_trigger: [90000, "iteration"]
+results: results/sample
+gpus:
+mode: Train
+seed: 1
 
 model:
-  architecture:
+  enet:
     initial_block:
       type: initial
       args:
@@ -112,73 +113,47 @@ loss:
     ignore_label: -1
     class_weight_npy: dataset/cityscapes/class_weight_gtFine.npy
 
+updater:
+  type:
+  name: StatelessRnnUpdater
+  args:
+    iou_thres: 0.8
+    accuracy: True
+
+iterator:
+  name: SerialIterator
+  batchsize: 16
+
 optimizer:
-  method: MomentumSGD
+  name: MomentumSGD
   args:
     lr: 0.01
     momentum: 0.9
   weight_decay: 0.0001
   lr_drop_poly_power: 0.9
-  # lr_drop_ratio: 0.1
-  # lr_drop_triggers:
-  #   points: [200, 400]
-  #   unit: epoch
 
-updater_creator:
-    module: chainer.training
-    name: StandardUpdater
-
-trainer_extension:
-  - LogReport:
+extension:
+  Evaluator:
+    type: rnn
+    name: StatelessRnnEvaluator
+    args:
+      accuracy: True
+      iou_thres: 0.75
+  dump_graph:
+      name: main/total_loss
+  snapshot:
       trigger: [1, "epoch"]
-  - dump_graph:
-      root_name: main/loss
-      out_name: cg.dot
-  - observe_lr:
-      trigger: [1, "epoch"]
-  - Evaluator:
-      module: chainercv.extensions
-      name: SemanticSegmentationEvaluator
-      trigger: [1, "epoch"]
-      prefix: val
-  - PlotReport:
-      y_keys:
-        - main/loss
-      x_key: epoch
-      file_name: loss_epoch.png
-      trigger: [1, "epoch"]
-  - PlotReport:
-      y_keys:
-        - val/main/miou
-      x_key: epoch
-      file_name: val_miou_epoch.png
-      trigger: [1, "epoch"]
-  - PlotReport:
-      y_keys:
-        - val/main/pixel_accuracy
-      x_key: epoch
-      file_name: val_pixel_accuracy_epoch.png
-      trigger: [1, "epoch"]
-  - PlotReport:
-      y_keys:
-        - val/main/mean_class_accuracy
-      x_key: epoch
-      file_name: val_mean_class_accuracy_epoch.png
-      trigger: [1, "epoch"]
-  - PrintReport:
-      entries:
-        - epoch
-        - iteration
-        - main/loss
-        - val/main/miou
-        - val/main/pixel_accuracy
-        - val/main/mean_class_accuracy
-        - elapsed_time
-        - lr
-      trigger: [1, "epoch"]
-  - ProgressBar:
+  LogReport:
+    trigger: [1, "epoch"]
+  PrintReport:
+    name:
+      epoch
+      iteration
+      main/total_loss
+      main/accuracy
+      val/main/total_loss
+      val/main/accuracy
+      # lr
+    trigger: [1, "epoch"]
+  ProgressBar:
       update_interval: 10
-      trigger: [10, "iteration"]
-  - snapshot:
-      filename: trainer_{.updater.epoch}_epoch
-      trigger: [10, "epoch"]
