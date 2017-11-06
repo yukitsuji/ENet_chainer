@@ -1,10 +1,10 @@
-"""
-Blockの中身は基本いじらない
-Bottleneckの構成を色々試してみる
-
-typeでBlockまたはBottleneckを設定できる
-Bottlenecで対応可能なparamは、Defaultのみ
-"""
+# """
+# Blockの中身は基本いじらない
+# Bottleneckの構成を色々試してみる
+#
+# typeでBlockまたはBottleneckを設定できる
+# Bottlenecで対応可能なparamは、Defaultのみ
+# """
 end_trigger: [90000, "iteration"]
 results: results/sample
 gpus:
@@ -15,7 +15,8 @@ model:
   name: ENetBasic
   architecture:
     initial_block:
-      type: initial
+      type: InitialBlock
+      loop: 4
       args:
         in_ch: 3
         out_ch: 13
@@ -64,15 +65,15 @@ model:
         in_ch: 128
   use_dec: False
 
-model:
-  module: pspnet
-  name: PSPNet
-  args:
-    n_class: 19
-    input_size: [713, 713]
-    n_blocks: [3, 4, 23, 3]
-    pyramids: [6, 3, 2, 1]
-    mid_stride: true
+# model:
+#   module: pspnet
+#   name: PSPNet
+#   args:
+#     n_class: 19
+#     input_size: [713, 713]
+#     n_blocks: [3, 4, 23, 3]
+#     pyramids: [6, 3, 2, 1]
+#     mid_stride: true
 
 dataset:
   train:

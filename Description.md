@@ -48,11 +48,19 @@ Include global context calculated by global average pooling to the last feature 
 Reference: https://arxiv.org/pdf/1702.08502.pdf
 
 ## ENet
+- **Symmetric Convolution**
+- **SqueezeNet based bottleneck module**
+- **Early downsampling**
+- **Poly learning rate**
+- **Atrous Convolution**
+- **Upsampling with max pooling's indexes**
 
 ## SegNet
+- **Symmetry Encoder-Decoder Model**
 
 ## PSPNet
 ### Points
 - **Pyramid Pooling Modules**
 - **Auxiliary Loss**
+
 ## UNet

@@ -23,7 +23,7 @@ import chainer
 from chainer import iterators
 from chainer.training import extensions
 
-from models import enet_paper
+from enet.models import enet_paper
 
 from collections import OrderedDict
 yaml.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
@@ -226,9 +226,6 @@ def load_dataset(config):
         loader = getattr(mot_loader, config['loader']['name'])
         return loader(**config['loader']['args'])
 
-def get_enet_model(config):
+def get_model(config):
     Model = getattr(enet_paper, config['name'])
     return Model(config["architecture"])
-
-
-def get_model(config, model_type=None):

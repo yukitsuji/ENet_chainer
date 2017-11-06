@@ -1,14 +1,16 @@
 from __future__ import division
 
 import numpy as np
+import sys
 
 import chainer
 import chainer.functions as F
 import chainer.links as L
+# from chainer import chain
 
 from chainercv.transforms import resize
 from chainercv.utils import download_model
-from spatial_dropout import spatial_dropout
+from enet.models.spatial_dropout import spatial_dropout
 
 
 def _without_cudnn(f, x):
@@ -93,12 +95,12 @@ class SymmetricConvBNPReLU(chainer.Chain):
 
 class InitialBlock(chainer.Chain):
     """Initial Block"""
-    def __init__(self, in_ch, out_ch, ksize, stride=1, pad=1, dilation=1,
+    def __init__(self, in_ch=3, out_ch=13, ksize=3, stride=2, pad=1, dilation=1,
                  nobias=False, symmetric=False):
         super(InitialBlock, self).__init__()
         with self.init_scope():
             self.ib_conv = L.Convolution2D(in_ch, out_ch, ksize, stride,
-                                           pad, dilation, nobias=nobias)
+                                           pad=pad, nobias=nobias)
             self.ib_bn = L.BatchNormalization(out_ch, eps=1e-5, decay=0.95)
             self.ib_prelu = L.PReLU()
 
@@ -158,8 +160,8 @@ class Block(chainer.Chain):
             if self.downsample:
                 self.conv = L.Convolution2D(self.in_ch, self.out_ch, 1, 1, 0, nobias=True)
                 self.bn = L.BatchNormalization(self.out_ch, eps=1e-5, decay=0.95)
-            if self.upsample:
-                self.p =
+            # if self.upsample:
+                # self.p =
 
     def initialize_param(config):
         self.in_ch = 0
@@ -216,7 +218,7 @@ class Block(chainer.Chain):
         h1 = h1 if not self.downsample else h1 + self.bn(self.conv(x))
         return self.prelu(h1)
 
-class FullConv(chain.Chain):
+class FullConv(chainer.Chain):
     """Last Layer"""
     def __init__(self):
         pass
@@ -287,7 +289,6 @@ class Bottleneck1(chainer.Chain):
         x = self.block5(x)
         return x
 
-
 class Bottleneck2(chainer.Chain):
 
     def __init__(self):
@@ -329,56 +330,28 @@ class Bottleneck5(chainer.Chain):
     def __call__(self):
         pass
 
+
+def parse_dict(dic, key, value=None):
+    return value if not key in dic else dic[key]
+
 class ENetBasic(chainer.Chain):
     """ENet Basic for semantic segmentation."""
-    _models = {
-        'camvid': {
-            'n_class': 11,
-        }
-        'cityscapes' : {
-            'n_class' : 19}}
-
-    def __init__(self, n_class=None, pretrained_model=None, initialW=None,
-                 model_config=None, remove_dec=False):
-        if n_class is None:
-            if pretrained_model not in self._models:
-                raise ValueError(
-                    'The n_class needs to be supplied as an argument.')
-            n_class = self._models[pretrained_model]['n_class']
-
-        if model_config is None:
-            raise ValueError(
-                'The model config needs to be supplied as an argument.')
-
-        enc_config = model_config["enc_config"]
-        dec_config = model_config["dec_config"]
-        config_init = enc_config["initial"]
-        config1 = enc_config['bottle1']
-        config2 = enc_config['bottle2']
-        config3 = enc_config['bottle3']
-        if not remove_dec:
-            config4 = enc_config['bottle4']
-            config5 = enc_config['bottle5']
-
-        if initialW is None:
-            initialW = chainer.initializers.HeNormal()
-
+    def __init__(self, model_config):
         super(ENetBasic, self).__init__()
+        n_class = None
+        this_mod = sys.modules[__name__]
+        self.layers = []
         with self.init_scope():
-            self.init_block = InitialBlock(config_init)
-            self.bottle1 = Bottleneck1(config1)
-            self.bottle2 = Bottleneck2(config2)
-            self.bottle3 = Bottleneck2(config3)
-            if remove_dec:
-                self.deconv5
-            else:
-                self.bottle4 = Bottleneck4()
-                self.bottle5 = Bottleneck5()
-                self.deconv6 = L.DilatedConvolution2D()
-            # self.conv_classifier = L.Convolution2D(
-            #     64, n_class, 1, 1, 0, initialW=initialW)
+            for key, config in model_config.items():
+                Model = getattr(this_mod, config['type'])
+                loop = parse_dict(config, 'loop', 1)
+                for l in range(loop):
+                    layer = Model(**config['args'])
+                    name = key + '_{}'.format(l)
+                    setattr(self, name, layer)
+                    self.layers.append(getattr(self, name))
 
-        self.n_class = n_class
+        # self.n_class = n_class
 
         if pretrained_model:
             chainer.serializers.load_npz(pretrained_model, self)
@@ -392,6 +365,10 @@ class ENetBasic(chainer.Chain):
     def decoder(self, x):
         h = self.bottle4(x)
         h = self.bottle5(x)
+
+    def __call__(self, x):
+        for layer in self.layers:
+            x = layer(x)
 
     def __call__(self, x):
         """Compute an image-wise score from a batch of images

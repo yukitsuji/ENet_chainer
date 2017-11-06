@@ -22,7 +22,7 @@ from collections import OrderedDict
 yaml.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
     lambda loader, node: OrderedDict(loader.construct_pairs(node)))
 
-from models import enet_paper
+from enet.models import enet_paper
 
 def train_enet():
     """Training ENet."""

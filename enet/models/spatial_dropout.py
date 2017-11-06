@@ -3,12 +3,16 @@ import numpy
 import chainer
 from chainer import configuration
 from chainer import cuda
-from chainer import function_node
+try:
+    from chainer import function_node
+    ParentClass = function_node.FunctionNode
+except:
+    from chainer import function
+    ParentClass = function.Function
 from chainer.utils import argument
 from chainer.utils import type_check
 
-
-class SpatialDropout(function_node.FunctionNode):
+class SpatialDropout(ParentClass):
 
     """SpatialDropout regularization."""
 
@@ -49,7 +53,7 @@ class SpatialDropout(function_node.FunctionNode):
         return SpatialDropoutGrad(self.mask).apply(gy)
 
 
-class SpatialDropoutGrad(function_node.FunctionNode):
+class SpatialDropoutGrad(ParentClass):
     """Computes the gradient of the SpatialDropout function."""
 
     def __init__(self, mask):
