@@ -13,7 +13,7 @@ from chainercv.utils import download_model
 from enet.models.spatial_dropout import spatial_dropout
 
 from chainer import Variable
-
+from chainercv.links import PixelwiseSoftmaxClassifier
 
 def _without_cudnn(f, x):
     with chainer.using_config('use_cudnn', 'never'):
@@ -240,30 +240,16 @@ class ENetBasic(chainer.Chain):
                     setattr(self, name, layer)
                     self.layers.append(getattr(self, name))
 
+
+
         if pretrained_model:
             chainer.serializers.load_npz(pretrained_model, self)
 
-    def __call__(self, x, y):
+    def __call__(self, x):
         for layer in self.layers:
             x = layer(x)
-        return Variable(np.array([0]))
+        return x
 
-    # def __call__(self, x):
-    #     """Compute an image-wise score from a batch of images
-    #     Args:
-    #         x (chainer.Variable): A variable with 4D image array.
-    #     Returns:
-    #         chainer.Variable:
-    #         An image-wise score. Its channel size is :obj:`self.n_class`.
-    #     """
-    #     p1 = F.MaxPooling2D(2, 2)
-    #     p2 = F.MaxPooling2D(2, 2)
-    #     p3 = F.MaxPooling2D(2, 2)
-    #     p4 = F.MaxPooling2D(2, 2)
-    #     h = _without_cudnn(p1, F.relu(self.conv1_bn(self.conv1(h))))
-    #     h = _without_cudnn(p2, F.relu(self.conv2_bn(self.conv2(h))))
-    #     h = _without_cudnn(p3, F.relu(self.conv3_bn(self.conv3(h))))
-    #     h = _without_cudnn(p4, F.relu(self.conv4_bn(self.conv4(h))))
     #     h = self._upsampling_2d(h, p4)
     #     h = self.conv_decode4_bn(self.conv_decode4(h))
     #     h = self._upsampling_2d(h, p3)

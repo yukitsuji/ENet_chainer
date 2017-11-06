@@ -11,6 +11,7 @@ import yaml
 import chainer
 from chainer import cuda, optimizers, serializers
 from chainer import training
+from chainercv.links import PixelwiseSoftmaxClassifier
 
 from enet.config_utils import *
 
@@ -32,6 +33,7 @@ def train_enet():
     train_data, test_data = load_dataset(config["dataset"])
     train_iter, test_iter = create_iterator(train_data, test_data, config['iterator'])
     model = get_model(config["model"])
+    model = PixelwiseSoftmaxClassifier(model)
     optimizer = create_optimizer(config['optimizer'], model)
     devices = parse_devices(config['gpus'])
     updater = create_updater(train_iter, optimizer, config['updater'], devices)

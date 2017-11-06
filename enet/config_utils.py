@@ -78,6 +78,7 @@ def create_extension(trainer, test_iter, model, config):
                 test_iter, model, **args))
         elif key == "dump_graph":
             cl = getattr(extensions, key)
+            print(ext['name'])
             trainer.extend(cl(ext['name']))
         elif key == 'snapshot':
             cl = getattr(extensions, key)

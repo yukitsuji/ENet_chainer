@@ -80,6 +80,7 @@ dataset:
       rotate: False
       fliplr: True
       n_class: 19
+      scale_label: 8
 
   valid:
     module: enet.data_util.cityscapes.cityscapes_transformed
@@ -108,7 +109,7 @@ updater:
 
 iterator:
   name: SerialIterator # MultiprocessIterator
-  batchsize: 4
+  batchsize: 8
 
 optimizer:
   name: MomentumSGD
@@ -121,10 +122,10 @@ optimizer:
 extension:
   Evaluator:
     name: SemanticSegmentationEvaluator
-  dump_graph:
-      name: main/loss
+  # dump_graph:
+  #     name: main/loss
   snapshot:
-      trigger: [1, "epoch"]
+      trigger: [2, "epoch"]
   LogReport:
     trigger: [1, "epoch"]
   PrintReport:

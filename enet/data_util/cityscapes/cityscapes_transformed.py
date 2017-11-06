@@ -11,9 +11,9 @@ from enet.data_util.cityscapes.cityscapes_semantic_segmentation_dataset import \
 
 
 def _transform(inputs, mean=None, crop_size=(512, 512), color_sigma=25.5,
-               scale=[0.5, 2.0], rotate=False, fliplr=False, n_class=20):
+               scale=[0.5, 2.0], rotate=False, fliplr=False, n_class=20,
+               scale_label=1):
     img, label = inputs
-    print(img.shape)
     # Scaling
     if scale:
         if isinstance(scale, (list, tuple)):
@@ -77,6 +77,8 @@ def _transform(inputs, mean=None, crop_size=(512, 512), color_sigma=25.5,
         assert label.shape == (crop_size[0], crop_size[1]), \
             '{} != {}'.format(label.shape, crop_size)
 
+    scale_label = (int(label.shape[1]/scale_label), int(label.shape[0]/scale_label))
+    label = cv.resize(label, scale_label, interpolation=cv.INTER_NEAREST)
     return img, label
 
 
@@ -88,11 +90,11 @@ class CityscapesTransformedDataset(datasets.TransformDataset):
     def __init__(self, data_dir="./", label_resolution="gtFine",
                  split="train", ignore_labels=True,
                  crop_size=(713, 713), color_sigma=None, scale=[0.5, 2.0],
-                 rotate=False, fliplr=False, n_class=19):
+                 rotate=False, fliplr=False, n_class=19, scale_label=1):
         self.d = CityscapesSemanticSegmentationDataset(
             data_dir, label_resolution, split)
         t = partial(
             _transform, mean=self.MEAN, crop_size=crop_size,
             color_sigma=color_sigma, scale=scale, rotate=rotate, fliplr=fliplr,
-            n_class=n_class)
+            n_class=n_class, scale_label=scale_label)
         super().__init__(self.d, t)
