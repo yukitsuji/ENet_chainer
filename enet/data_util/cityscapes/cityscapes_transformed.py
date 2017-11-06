@@ -6,14 +6,14 @@ from PIL import Image
 
 from chainer import datasets
 from chainercv import transforms
-from datasets.cityscapes.cityscapes_semantic_segmentation_dataset import \
+from enet.data_util.cityscapes.cityscapes_semantic_segmentation_dataset import \
     CityscapesSemanticSegmentationDataset
 
 
 def _transform(inputs, mean=None, crop_size=(512, 512), color_sigma=25.5,
                scale=[0.5, 2.0], rotate=False, fliplr=False, n_class=20):
     img, label = inputs
-
+    print(img.shape)
     # Scaling
     if scale:
         if isinstance(scale, (list, tuple)):
@@ -85,7 +85,8 @@ class CityscapesTransformedDataset(datasets.TransformDataset):
     # Cityscapes mean
     MEAN = np.array([73.15835921, 82.90891754, 72.39239876])
 
-    def __init__(self, data_dir, label_resolution, split, ignore_labels=True,
+    def __init__(self, data_dir="./", label_resolution="gtFine",
+                 split="train", ignore_labels=True,
                  crop_size=(713, 713), color_sigma=None, scale=[0.5, 2.0],
                  rotate=False, fliplr=False, n_class=19):
         self.d = CityscapesSemanticSegmentationDataset(

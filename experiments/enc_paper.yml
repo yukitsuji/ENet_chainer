@@ -7,7 +7,7 @@
 # """
 end_trigger: [90000, "iteration"]
 results: results/sample
-gpus:
+gpus: [0]
 mode: Train
 seed: 1
 
@@ -16,7 +16,6 @@ model:
   architecture:
     initial_block:
       type: InitialBlock
-      loop: 4
       args:
         in_ch: 3
         out_ch: 13
@@ -26,7 +25,7 @@ model:
         nobias: False
 
     bottleneck1_0:
-      type: block
+      type: Block
       args:
         in_ch: 16
         mid_ch: 16
@@ -35,7 +34,7 @@ model:
         drop_ratio: 0.01
 
     bottleneck1_1:
-      type: block
+      type: Block
       loop: 4
       args:
         in_ch: 64
@@ -44,7 +43,7 @@ model:
         drop_ratio: 0.01
 
     bottleneck2_0:
-      type: block
+      type: Block
       args:
         in_ch: 64
         mid_ch: 32
@@ -52,51 +51,41 @@ model:
         downsample: 1
 
     bottleneck2_1:
-      type: bottleneck2
+      type: Bottleneck2
       loop: 2
       args:
         in_ch: 128
         mid_ch: 32
         out_ch: 128
+        drop_ratio: 0.01
 
     fullconv:
-      type: fullconv
+      type: FullConv
       args:
         in_ch: 128
-  use_dec: False
-
-# model:
-#   module: pspnet
-#   name: PSPNet
-#   args:
-#     n_class: 19
-#     input_size: [713, 713]
-#     n_blocks: [3, 4, 23, 3]
-#     pyramids: [6, 3, 2, 1]
-#     mid_stride: true
+        out_ch: 19
 
 dataset:
   train:
-    module: datasets
+    module: enet.data_util.cityscapes.cityscapes_transformed
     name: CityscapesTransformedDataset
     args:
-      data_dir: data/cityscapes
+      data_dir: /home/yukitsuji/dataset/cityscapes
       label_resolution: gtFine
       split: train
       ignore_labels: true
-      crop_size: [713, 713]
+      crop_size: [512, 1024]
       color_sigma: null
       scale: [0.5, 2.0]
       rotate: False
       fliplr: True
       n_class: 19
-    batchsize: 1
 
   valid:
-    module: dataset
+    module: enet.data_util.cityscapes.cityscapes_transformed
     name: CityscapesTransformedDataset
     args:
-      data_dir: data/cityscapes
+      data_dir: /home/yukitsuji/dataset/cityscapes
       label_resolution: gtFine
       split: val
       ignore_labels: true
@@ -106,7 +95,6 @@ dataset:
       rotate: False
       fliplr: False
       n_class: 19
-    batchsize: 1
 
 loss:
   module: loss.pspnet_loss
@@ -116,33 +104,25 @@ loss:
     class_weight_npy: dataset/cityscapes/class_weight_gtFine.npy
 
 updater:
-  type:
-  name: StatelessRnnUpdater
-  args:
-    iou_thres: 0.8
-    accuracy: True
+  name: StandardUpdater #ParallelUpdater
 
 iterator:
-  name: SerialIterator
-  batchsize: 16
+  name: SerialIterator # MultiprocessIterator
+  batchsize: 4
 
 optimizer:
   name: MomentumSGD
   args:
     lr: 0.01
     momentum: 0.9
-  weight_decay: 0.0001
-  lr_drop_poly_power: 0.9
+  hook:
+    WeightDecay: 0.0002
 
 extension:
   Evaluator:
-    type: rnn
-    name: StatelessRnnEvaluator
-    args:
-      accuracy: True
-      iou_thres: 0.75
+    name: SemanticSegmentationEvaluator
   dump_graph:
-      name: main/total_loss
+      name: main/loss
   snapshot:
       trigger: [1, "epoch"]
   LogReport:
@@ -151,9 +131,9 @@ extension:
     name:
       epoch
       iteration
-      main/total_loss
+      main/loss
       main/accuracy
-      val/main/total_loss
+      val/main/loss
       val/main/accuracy
       # lr
     trigger: [1, "epoch"]

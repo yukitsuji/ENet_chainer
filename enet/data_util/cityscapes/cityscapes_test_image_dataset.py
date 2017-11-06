@@ -6,7 +6,7 @@ from chainer import dataset
 from chainer.dataset import download
 
 from chainercv.utils import read_image
-from datasets.cityscapes.cityscapes_utils import cityscapes_labels
+from enet.data_util.cityscapes.cityscapes_utils import cityscapes_labels
 
 
 class CityscapesTestImageDataset(dataset.DatasetMixin):

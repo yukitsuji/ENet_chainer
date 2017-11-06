@@ -26,18 +26,20 @@ from enet.models import enet_paper
 
 def train_enet():
     """Training ENet."""
+    # chainer.config.enable_backprop = False
+    # chainer.config.train = False
     config = parse_args()
-    rnn_predictor = get_model(config["model"])
     train_data, test_data = load_dataset(config["dataset"])
     train_iter, test_iter = create_iterator(train_data, test_data, config['iterator'])
-    optimizer = create_optimizer(config['optimizer'], rnn_predictor)
-    args = {}
-    updater = create_updater(train_iter, optimizer, config['updater'], args)
+    model = get_model(config["model"])
+    optimizer = create_optimizer(config['optimizer'], model)
+    devices = parse_devices(config['gpus'])
+    updater = create_updater(train_iter, optimizer, config['updater'], devices)
     trainer = training.Trainer(updater, config['end_trigger'], out=config['results'])
-    trainer = create_extension(trainer, test_iter,  rnn_predictor, config['extension'])
+    trainer = create_extension(trainer, test_iter,  model, config['extension'])
     trainer.run()
-    chainer.serializers.save_npz(os.path.join(config['results'], 'rnn_predictor.npz'),
-                                 rnn_predictor)
+    chainer.serializers.save_npz(os.path.join(config['results'], 'model.npz'),
+                                 model)
 
 def main():
     train_enet()

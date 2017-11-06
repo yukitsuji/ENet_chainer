@@ -10,10 +10,9 @@ import re
 import numpy as np
 from google.protobuf import text_format
 
-import converter.caffe_pb2
+from converter import caffe_pb2
 import chainer
 import chainer.links as L
-import pspnet
 from chainer import serializers
 
 
@@ -44,6 +43,8 @@ def get_param_net(prodo_dir, param_fn, proto_fn):
     net = caffe_pb2.NetParameter()
     net = text_format.Merge(proto_fp, net)
     print('done')
+    print(net.layer[0])
+    exit()
     return param, net
 
 
@@ -182,21 +183,11 @@ def transfer(model, param, net):
 
 
 if __name__ == '__main__':
-    proto_dir = 'weights'
+    proto_dir = 'converter'
 
-    if not os.path.exists(os.path.join(proto_dir, 'pspnet101_VOC2012.caffemodel')):
-        print('Please download pspnet101_VOC2012.caffemodel from here: '
-              'https://drive.google.com/open?id=0BzaU285cX7TCNVhETE5vVUdMYk0 '
-              'and put it into weights/ dir.')
-        exit()
-    if not os.path.exists(os.path.join(proto_dir, 'pspnet101_cityscapes.caffemodel')):
+    if not os.path.exists(os.path.join(proto_dir, 'weights2.caffemodel')):
         print('Please download pspnet101_cityscapes.caffemodel from here: '
               'https://drive.google.com/open?id=0BzaU285cX7TCT1M3TmNfNjlUeEU '
-              'and put it into weights/ dir.')
-        exit()
-    if not os.path.exists(os.path.join(proto_dir, 'pspnet50_ADE20K.caffemodel')):
-        print('Please download pspnet50_ADE20K.caffemodel from here: '
-              'https://drive.google.com/open?id=0BzaU285cX7TCN1R3QnUwQ0hoMTA '
               'and put it into weights/ dir.')
         exit()
 
@@ -206,19 +197,9 @@ if __name__ == '__main__':
     # ADE20K: 46782550
 
     settings = {
-        'voc2012': {
-            'proto_fn': 'pspnet101_VOC2012_473.prototxt',
-            'param_fn': 'pspnet101_VOC2012.caffemodel',
-            'n_class': 21,
-            'input_size': 473,
-            'n_blocks': [3, 4, 23, 3],
-            'feat_size': 60,
-            'mid_stride': True,
-            'pyramids': [6, 3, 2, 1],
-        },
         'cityscapes': {
-            'proto_fn': 'pspnet101_cityscapes_713.prototxt',
-            'param_fn': 'pspnet101_cityscapes.caffemodel',
+            'proto_fn': 'weights2.prototxt',
+            'param_fn': 'weights2.caffemodel',
             'n_class': 19,
             'input_size': 713,
             'n_blocks': [3, 4, 23, 3],
@@ -226,19 +207,9 @@ if __name__ == '__main__':
             'mid_stride': True,
             'pyramids': [6, 3, 2, 1],
         },
-        'ade20k': {
-            'proto_fn': 'pspnet50_ADE20K_473.prototxt',
-            'param_fn': 'pspnet50_ADE20K.caffemodel',
-            'n_class': 150,
-            'input_size': 473,
-            'n_blocks': [3, 4, 6, 3],
-            'feat_size': 60,
-            'mid_stride': False,
-            'pyramids': [6, 3, 2, 1],
-        }
     }
 
-    for dataset_name in ['voc2012', 'cityscapes', 'ade20k']:
+    for dataset_name in ['cityscapes']:
         proto_fn = settings[dataset_name]['proto_fn']
         param_fn = settings[dataset_name]['param_fn']
         n_class = settings[dataset_name]['n_class']
@@ -251,8 +222,8 @@ if __name__ == '__main__':
         param_fn = os.path.join(proto_dir, param_fn)
         proto_fn = os.path.join(proto_dir, proto_fn)
 
-        model = get_chainer_model(
-            n_class, input_size, n_blocks, pyramids, mid_stride)
+        # model = get_chainer_model(
+        #     n_class, input_size, n_blocks, pyramids, mid_stride)
         param, net = get_param_net(proto_dir, param_fn, proto_fn)
         model = transfer(model, param, net)
 

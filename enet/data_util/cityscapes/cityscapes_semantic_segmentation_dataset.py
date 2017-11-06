@@ -6,7 +6,7 @@ import numpy as np
 from chainer import dataset
 from chainer.dataset import download
 from chainercv.utils import read_image
-from datasets.cityscapes.cityscapes_utils import cityscapes_labels
+from enet.data_util.cityscapes.cityscapes_utils import cityscapes_labels
 
 
 class CityscapesSemanticSegmentationDataset(dataset.DatasetMixin):
@@ -42,12 +42,9 @@ class CityscapesSemanticSegmentationDataset(dataset.DatasetMixin):
         if data_dir is None:
             data_dir = download.get_dataset_directory(
                 'pfnet/chainercv/cityscapes')
-        if label_resolution not in ['fine', 'coarse']:
-            raise ValueError('\'label_resolution\' argment should be eighter '
-                             '\'fine\' or \'coarse\'.')
 
         img_dir = os.path.join(data_dir, os.path.join('leftImg8bit', split))
-        resol = 'gtFine' if label_resolution == 'fine' else 'gtCoarse'
+        resol = label_resolution
         label_dir = os.path.join(data_dir, resol)
         if not os.path.exists(img_dir) or not os.path.exists(label_dir):
             raise ValueError(

@@ -32,7 +32,7 @@ class SpatialDropout(ParentClass):
             scale = x[0].dtype.type(1. / (1 - self.dropout_ratio))
             xp = cuda.get_array_module(*x)
             mask = xp.ones(x[0].shape, dtype=numpy.float32)
-            rand = xp.random.rand(*x[0].shape[:2], dtype=numpy.float32)
+            rand = xp.random.rand(*x[0].shape[:2])
             mask[rand <= self.dropout_ratio] = 0
 
             if xp == numpy:
