@@ -90,12 +90,13 @@ dataset:
       label_resolution: gtFine
       split: val
       ignore_labels: true
-      crop_size: [713, 713]
+      crop_size: [512, 1024]
       color_sigma: null
       scale: null
       rotate: False
       fliplr: False
       n_class: 19
+      scale_label: 8
 
 loss:
   module: loss.pspnet_loss
@@ -109,7 +110,7 @@ updater:
 
 iterator:
   name: SerialIterator # MultiprocessIterator
-  batchsize: 8
+  batchsize: 4
 
 optimizer:
   name: MomentumSGD
@@ -122,8 +123,7 @@ optimizer:
 extension:
   Evaluator:
     name: SemanticSegmentationEvaluator
-  # dump_graph:
-  #     name: main/loss
+    trigger: [1, 'epoch']      
   snapshot:
       trigger: [2, "epoch"]
   LogReport:

@@ -15,6 +15,10 @@ from enet.models.spatial_dropout import spatial_dropout
 from chainer import Variable
 from chainercv.links import PixelwiseSoftmaxClassifier
 
+
+def parse_dict(dic, key, value=None):
+    return value if not key in dic else dic[key]
+
 def _without_cudnn(f, x):
     with chainer.using_config('use_cudnn', 'never'):
         return f.apply((x,))[0]
@@ -41,6 +45,9 @@ class ConvBN(chainer.Chain):
     def __call__(self, x):
         return self.bn(self.conv(x))
 
+    def predict(self, x):
+        return self.bn(self.conv(x))
+
 
 class ConvBNPReLU(ConvBN):
     """Convolution2D + Batch Normalization + PReLU"""
@@ -51,8 +58,10 @@ class ConvBNPReLU(ConvBN):
 
         self.add_link("prelu", L.PReLU())
 
-
     def __call__(self, x):
+        return self.prelu(self.bn(self.conv(x)))
+
+    def predict(self, x):
         return self.prelu(self.bn(self.conv(x)))
 
 
@@ -70,6 +79,10 @@ class SymmetricConvBNPReLU(chainer.Chain):
             self.prelu = L.PReLU()
 
     def __call__(self, x):
+        h = self.conv2(self.conv1(x))
+        return self.prelu(self.bn(h))
+
+    def predict(self, x):
         h = self.conv2(self.conv1(x))
         return self.prelu(self.bn(h))
 
@@ -92,7 +105,7 @@ class InitialBlock(chainer.Chain):
         h = self.ib_bn(h)
         return self.ib_prelu(h)
 
-    def inference(self, x):
+    def predict(self, x):
         h1 = self.ib_conv(x)
         h2 = F.max_pooling_2d(x, 2, 2)
         h = F.concat((h1, h2), axis=1)
@@ -147,7 +160,6 @@ class Block(chainer.Chain):
         h1 = self.conv2(h1)
         h1 = self.conv3(h1)
         h1 = spatial_dropout(h1, self.drop_ratio)
-
         if self.downsample:
             self.p = F.MaxPooling2D(2, 2)
             h1 += self.bn(self.conv(_without_cudnn(self.p, x)))
@@ -158,7 +170,7 @@ class Block(chainer.Chain):
         # h1 = h1 if not self.downsample else h1 + self.bn(self.conv(x))
         return self.prelu(h1)
 
-    def inference(self, x):
+    def predict(self, x):
         h1 = self.conv1(x)
         h1 = self.conv2(h1)
         h1 = self.conv3(h1)
@@ -209,6 +221,17 @@ class Bottleneck2(chainer.Chain):
         x = self.block8(x)
         return x
 
+    def predict(self, x):
+        x = self.block1(x)
+        x = self.block2(x)
+        x = self.block3(x)
+        x = self.block4(x)
+        x = self.block5(x)
+        x = self.block6(x)
+        x = self.block7(x)
+        x = self.block8(x)
+        return x
+
 
 class FullConv(chainer.Chain):
     """FullConv Abstract"""
@@ -220,8 +243,9 @@ class FullConv(chainer.Chain):
     def __call__(self, x):
         return self.deconv(x)
 
-def parse_dict(dic, key, value=None):
-    return value if not key in dic else dic[key]
+    def predict(self, x):
+        return self.deconv(x)
+
 
 class ENetBasic(chainer.Chain):
     """ENet Basic for semantic segmentation."""
@@ -240,8 +264,6 @@ class ENetBasic(chainer.Chain):
                     setattr(self, name, layer)
                     self.layers.append(getattr(self, name))
 
-
-
         if pretrained_model:
             chainer.serializers.load_npz(pretrained_model, self)
 
@@ -249,6 +271,20 @@ class ENetBasic(chainer.Chain):
         for layer in self.layers:
             x = layer(x)
         return x
+
+    def predict(self, x):
+        with chainer.using_config('train', False), \
+                chainer.function.no_backprop_mode():
+            x = self.xp.asarray(x)
+            print(self.xp)
+            if x.ndim == 3:
+                x = self.xp.expand_dims(x, 0)
+            for layer in self.layers:
+                x = layer.predict(x)
+            label = self.xp.argmax(x.data, axis=1).astype("i")
+            label = chainer.cuda.to_cpu(label)
+            return list(label)
+
 
     #     h = self._upsampling_2d(h, p4)
     #     h = self.conv_decode4_bn(self.conv_decode4(h))
@@ -260,30 +296,3 @@ class ENetBasic(chainer.Chain):
     #     h = self.conv_decode1_bn(self.conv_decode1(h))
     #     score = self.conv_classifier(h)
     #     return score
-
-    def predict(self, imgs):
-        """Conduct semantic segmentations from images.
-        Args:
-            imgs (iterable of numpy.ndarray): Arrays holding images.
-                All images are in CHW and RGB format
-                and the range of their values are :math:`[0, 255]`.
-        Returns:
-            list of numpy.ndarray:
-            List of integer labels predicted from each image in the input \
-            list.
-        """
-        labels = list()
-        for img in imgs:
-            C, H, W = img.shape
-            with chainer.using_config('train', False), \
-                    chainer.function.no_backprop_mode():
-                x = chainer.Variable(self.xp.asarray(img[np.newaxis]))
-                score = self.__call__(x)[0].data
-            score = chainer.cuda.to_cpu(score)
-            if score.shape != (C, H, W):
-                dtype = score.dtype
-                score = resize(score, (H, W)).astype(dtype)
-
-            label = np.argmax(score, axis=0).astype(np.int32)
-            labels.append(label)
-        return labels

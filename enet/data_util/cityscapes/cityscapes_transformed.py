@@ -77,8 +77,9 @@ def _transform(inputs, mean=None, crop_size=(512, 512), color_sigma=25.5,
         assert label.shape == (crop_size[0], crop_size[1]), \
             '{} != {}'.format(label.shape, crop_size)
 
-    scale_label = (int(label.shape[1]/scale_label), int(label.shape[0]/scale_label))
-    label = cv.resize(label, scale_label, interpolation=cv.INTER_NEAREST)
+    if scale_label != 1:
+        scale_label = (int(label.shape[1]/scale_label), int(label.shape[0]/scale_label))
+        label = cv.resize(label, scale_label, interpolation=cv.INTER_NEAREST)
     return img, label
 
 

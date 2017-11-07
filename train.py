@@ -38,7 +38,8 @@ def train_enet():
     devices = parse_devices(config['gpus'])
     updater = create_updater(train_iter, optimizer, config['updater'], devices)
     trainer = training.Trainer(updater, config['end_trigger'], out=config['results'])
-    trainer = create_extension(trainer, test_iter,  model, config['extension'])
+    trainer = create_extension(trainer, test_iter,  model.predictor,
+                               config['extension'], devices=devices)
     trainer.run()
     chainer.serializers.save_npz(os.path.join(config['results'], 'model.npz'),
                                  model)

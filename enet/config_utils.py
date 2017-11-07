@@ -68,14 +68,15 @@ def parse_args():
 def parse_trigger(trigger):
     return (int(trigger[0]), trigger[1])
 
-def create_extension(trainer, test_iter, model, config):
+def create_extension(trainer, test_iter, model, config, devices=None):
     """Create extension for training models"""
     for key, ext in config.items():
         if key == "Evaluator":
             cl = getattr(chainercv.extensions, ext['name'])
             args = parse_dict(ext, 'args', {})
+            # args['device'] = devices
             trainer.extend(cl(
-                test_iter, model, **args))
+                test_iter, model, **args), trigger=ext['trigger'])
         elif key == "dump_graph":
             cl = getattr(extensions, key)
             print(ext['name'])
