@@ -67,7 +67,7 @@ model:
 
 dataset:
   train:
-    module: enet.data_util.Cityscapes.Cityscapes_transformed
+    module: enet.data_util.cityscapes.cityscapes_transformed
     name: CityscapesTransformedDataset
     args:
       data_dir: /home/yukitsuji/dataset/Cityscapes
@@ -86,7 +86,7 @@ dataset:
     module: enet.data_util.cityscapes.cityscapes_transformed
     name: CityscapesTransformedDataset
     args:
-      data_dir: /home/yukitsuji/dataset/cityscapes
+      data_dir: /home/yukitsuji/dataset/Cityscapes
       label_resolution: gtFine
       split: val
       ignore_labels: true
@@ -109,7 +109,7 @@ updater:
   name: StandardUpdater #ParallelUpdater
 
 iterator:
-  name: SerialIterator # MultiprocessIterator
+  name: MultiprocessIterator
   batchsize: 4
 
 optimizer:
