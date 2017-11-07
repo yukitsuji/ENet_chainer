@@ -276,7 +276,6 @@ class ENetBasic(chainer.Chain):
         with chainer.using_config('train', False), \
                 chainer.function.no_backprop_mode():
             x = self.xp.asarray(x)
-            print(self.xp)
             if x.ndim == 3:
                 x = self.xp.expand_dims(x, 0)
             for layer in self.layers:

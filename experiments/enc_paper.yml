@@ -67,10 +67,10 @@ model:
 
 dataset:
   train:
-    module: enet.data_util.cityscapes.cityscapes_transformed
+    module: enet.data_util.Cityscapes.Cityscapes_transformed
     name: CityscapesTransformedDataset
     args:
-      data_dir: /home/yukitsuji/dataset/cityscapes
+      data_dir: /home/yukitsuji/dataset/Cityscapes
       label_resolution: gtFine
       split: train
       ignore_labels: true
@@ -103,7 +103,7 @@ loss:
   name: PixelwiseSoftmaxClassifier
   args:
     ignore_label: -1
-    class_weight_npy: dataset/cityscapes/class_weight_gtFine.npy
+    class_weight_npy: dataset/Cityscapes/class_weight_gtFine.npy
 
 updater:
   name: StandardUpdater #ParallelUpdater
@@ -123,7 +123,7 @@ optimizer:
 extension:
   Evaluator:
     name: SemanticSegmentationEvaluator
-    trigger: [1, 'epoch']      
+    trigger: [1, 'epoch']
   snapshot:
       trigger: [2, "epoch"]
   LogReport:
@@ -133,9 +133,9 @@ extension:
       epoch
       iteration
       main/loss
-      main/accuracy
-      val/main/loss
-      val/main/accuracy
+      validation/main/miou
+      validation/main/pixel_accuracy
+      validation/main/mean_class_accuracy
       # lr
     trigger: [1, "epoch"]
   ProgressBar:
