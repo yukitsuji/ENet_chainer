@@ -111,14 +111,14 @@ class Block(chainer.Chain):
         self.downsample = downsample
         self.upsample = upsample
         with self.init_scope():
-            self.block1 = ConvBNPReLU(in_ch, mid_ch, k1, s1, 0,
+            self.conv1 = ConvBNPReLU(in_ch, mid_ch, k1, s1, 0,
                                       nobias=True)
             ConvBlock = SymmetricConvBNPReLU if symmetric else ConvBNPReLU
-            self.block2 = ConvBlock(mid_ch, mid_ch, k2, stride,
+            self.conv2 = ConvBlock(mid_ch, mid_ch, k2, stride,
                                     pad, dilation,
                                     nobias=False,
                                     upsample=upsample)
-            self.block3 = ConvBN(mid_ch, out_ch, 1, 1, 0, nobias=True)
+            self.conv3 = ConvBN(mid_ch, out_ch, 1, 1, 0, nobias=True)
             self.prelu = L.PReLU()
             if downsample:
                 self.conv = L.Convolution2D(in_ch, out_ch, 1, 1, 0, nobias=True)
@@ -143,9 +143,9 @@ class Block(chainer.Chain):
             stride=(pool.sy, pool.sx), pad=(pool.ph, pool.pw), outsize=outsize)
 
     def __call__(self, x):
-        h1 = self.block1(x)
-        h1 = self.block2(h1)
-        h1 = self.block3(h1)
+        h1 = self.conv1(x)
+        h1 = self.conv2(h1)
+        h1 = self.conv3(h1)
         h1 = spatial_dropout(h1, self.drop_ratio)
 
         if self.downsample:
@@ -159,9 +159,9 @@ class Block(chainer.Chain):
         return self.prelu(h1)
 
     def inference(self, x):
-        h1 = self.block1(x)
-        h1 = self.block2(h1)
-        h1 = self.block3(h1)
+        h1 = self.conv1(x)
+        h1 = self.conv2(h1)
+        h1 = self.conv3(h1)
         if self.downsample:
             self.p = F.MaxPooling2D(2, 2)
             h1 += self.bn(self.conv(_without_cudnn(self.p, x)))

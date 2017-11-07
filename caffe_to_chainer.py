@@ -15,6 +15,9 @@ import chainer
 import chainer.links as L
 from chainer import serializers
 
+# from enet.models.enet_paper
+from enet.config_utils import get_model, parse_args
+
 
 def get_chainer_model(n_class, input_size, n_blocks, pyramids, mid_stride):
     with chainer.using_config('train', True):
@@ -44,7 +47,6 @@ def get_param_net(prodo_dir, param_fn, proto_fn):
     net = text_format.Merge(proto_fp, net)
     print('done')
     print(net.layer[0])
-    exit()
     return param, net
 
 
@@ -100,19 +102,30 @@ def copy_cbr(layer, config, cbr):
         cbr.bn.avg_mean.ravel()[:] = np.array(layer.blobs[2].data).ravel()
         cbr.bn.avg_var.ravel()[:] = np.array(layer.blobs[3].data).ravel()
     else:
-        print('Ignored: {} ({})'.format(layer.name, layer.type))
+        print('copy cbr Ignored: {} ({})'.format(layer.name, layer.type))
+    return cbr
+
+def copy_bn(layer, config, bn):
+    print(config.bn_param)
+    # bn.eps = config.bn_param.eps
+    # bn.decay = config.bn_param.momentum
+    print(layer.blobs)
+    bn.gamma.data.ravel()[:] = np.array(layer.blobs[0].data).ravel()
+    bn.beta.data.ravel()[:] = np.array(layer.blobs[1].data).ravel()
+    bn.avg_mean.ravel()[:] = np.array(layer.blobs[2].data).ravel()
+    bn.avg_var.ravel()[:] = np.array(layer.blobs[3].data).ravel()
     return cbr
 
 
 def copy_head(layer, config, block):
-    if layer.name.startswith('conv1_1'):
-        block.cbr1_1 = copy_cbr(layer, config, block.cbr1_1)
-    elif layer.name.startswith('conv1_2'):
-        block.cbr1_2 = copy_cbr(layer, config, block.cbr1_2)
-    elif layer.name.startswith('conv1_3'):
-        block.cbr1_3 = copy_cbr(layer, config, block.cbr1_3)
+    if layer.name.startswith('conv0_1'):
+        block.ib_conv = copy_conv(layer, config, block.ib_conv, has_bias=True)
+    elif layer.name.startswith('bn0_1'):
+        block.ib_bn = copy_bn(layer, config, block.ib_bn)
+    elif layer.name.startswith('prelu0_1'):
+        block.ib_prelu = copy_cbr(layer, config, block.ib_prelu)
     else:
-        print('Ignored: {} ({})'.format(layer.name, layer.type))
+        print('copy head Ignored: {} ({})'.format(layer.name, layer.type))
     return block
 
 
@@ -126,7 +139,7 @@ def copy_bottleneck(layer, config, block):
     elif 'proj' in layer.name:
         block.cbr4 = copy_cbr(layer, config, block.cbr4)
     else:
-        print('Ignored: {} ({})'.format(layer.name, layer.type))
+        print('bottleneck Ignored: {} ({})'.format(layer.name, layer.type))
     return block
 
 
@@ -154,12 +167,16 @@ def copy_ppm_module(layer, config, block):
 
 def transfer(model, param, net):
     name_config = dict([(l.name, l) for l in net.layer])
+    print(model._children)
     for layer in param.layer:
         if layer.name not in name_config:
             continue
         config = name_config[layer.name]
-        if layer.name.startswith('conv1'):
-            model.trunk = copy_head(layer, config, model.trunk)
+        if layer.name.startswith('conv0') or layer.name.startswith('bn0') or layer.name.startswith('prelu0'):
+            print(layer.name)
+            model.initial_block_0 = copy_head(layer, config, model.initial_block_0)
+        elif layer.name.startswith('conv1'):
+            pass
         elif layer.name.startswith('conv2'):
             model.trunk.res2 = copy_resblock(layer, config, model.trunk.res2)
         elif layer.name.startswith('conv3'):
@@ -178,7 +195,7 @@ def transfer(model, param, net):
             model.out_main = copy_conv(
                 layer, config, model.out_main, has_bias=True)
         else:
-            print('Ignored: {} ({})'.format(layer.name, layer.type))
+            print('transfer Ignored: {} ({})'.format(layer.name, layer.type))
     return model
 
 
@@ -222,8 +239,8 @@ if __name__ == '__main__':
         param_fn = os.path.join(proto_dir, param_fn)
         proto_fn = os.path.join(proto_dir, proto_fn)
 
-        # model = get_chainer_model(
-        #     n_class, input_size, n_blocks, pyramids, mid_stride)
+        config = parse_args()
+        model = get_model(config['model'])
         param, net = get_param_net(proto_dir, param_fn, proto_fn)
         model = transfer(model, param, net)
 
