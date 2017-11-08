@@ -4627,4 +4627,3 @@ layer {
   top: "accuracy"
   top: "per_class_accuracy"
 }
-

@@ -23,11 +23,12 @@ def _without_cudnn(f, x):
     with chainer.using_config('use_cudnn', 'never'):
         return f.apply((x,))[0]
 
-class ConvBN(chainer.Chain):
-    """Convolution2D + Batch Normalization"""
+
+class Conv(chainer.Chain):
+    "Convolution2D for inference module"
     def __init__(self, in_ch, out_ch, ksize, stride=1, pad=1, dilation=1,
                  nobias=False, upsample=False):
-        super(ConvBN, self).__init__()
+        super(Conv, self).__init__()
         with self.init_scope():
             if upsample:
                 self.conv = L.Deconvolution2D(
@@ -40,13 +41,43 @@ class ConvBN(chainer.Chain):
                     self.conv = L.Convolution2D(
                         in_ch, out_ch, ksize, stride, pad, nobias=nobias)
 
-            self.bn = L.BatchNormalization(out_ch, eps=1e-5, decay=0.95)
+    def __call__(self, x):
+        return self.conv(x)
+
+    def predict(self, x):
+        return self.conv(x)
+
+
+class ConvBN(Conv):
+    """Convolution2D + Batch Normalization"""
+    def __init__(self, in_ch, out_ch, ksize, stride=1, pad=1, dilation=1,
+                 nobias=False, upsample=False):
+        super(ConvBN, self).__init__(in_ch, out_ch, ksize, stride, pad,
+                                     dilation, nobias, upsample)
+
+        self.add_link("bn", L.BatchNormalization(out_ch, eps=1e-5, decay=0.95))
 
     def __call__(self, x):
         return self.bn(self.conv(x))
 
     def predict(self, x):
         return self.bn(self.conv(x))
+
+
+class ConvPReLU(Conv):
+    """Convolution2D + PReLU"""
+    def __init__(self, in_ch, out_ch, ksize, stride=1, pad=1, dilation=1,
+                 nobias=False, upsample=False):
+        super(ConvPReLU, self).__init__(in_ch, out_ch, ksize, stride, pad,
+                                        dilation, nobias, upsample)
+
+        self.add_link("prelu", L.PReLU())
+
+    def __call__(self, x):
+        return self.prelu(self.conv(x))
+
+    def predict(self, x):
+        return self.prelu(self.conv(x))
 
 
 class ConvBNPReLU(ConvBN):
@@ -65,18 +96,33 @@ class ConvBNPReLU(ConvBN):
         return self.prelu(self.bn(self.conv(x)))
 
 
-class SymmetricConvBNPReLU(chainer.Chain):
-    """Convolution2D + Batch Normalization + PReLU"""
+class SymmetricConvPReLU(chainer.Chain):
+    """Convolution2D + PReLU"""
     def __init__(self, in_ch, out_ch, ksize, stride=1, pad=1, dilation=1,
                  nobias=False, upsample=None):
-        super(SymmetricConvBNPReLU, self).__init__()
+        super(SymmetricConvPReLU, self).__init__()
         with self.init_scope():
             self.conv1 = L.Convolution2D(
                 in_ch, out_ch, (ksize, 1), stride, pad, nobias=nobias)
             self.conv2 = L.Convolution2D(
                 in_ch, out_ch, (1, ksize), stride, pad, nobias=nobias)
-            self.bn = L.BatchNormalization(out_ch, eps=1e-5, decay=0.95)
             self.prelu = L.PReLU()
+
+    def __call__(self, x):
+        return self.prelu(self.conv2(self.conv1(x)))
+
+    def predict(self, x):
+        return self.prelu(self.conv2(self.conv1(x)))
+
+
+class SymmetricConvBNPReLU(SymmetricConvPReLU):
+    """Convolution2D + Batch Normalization + PReLU"""
+    def __init__(self, in_ch, out_ch, ksize, stride=1, pad=1, dilation=1,
+                 nobias=False, upsample=None):
+        super(SymmetricConvBNPReLU, self).__init__(in_ch, out_ch, ksize,
+                                                   stride, pad, dilation,
+                                                   nobias, upsample)
+        self.add_link("bn", L.BatchNormalization(out_ch, eps=1e-5, decay=0.95))
 
     def __call__(self, x):
         h = self.conv2(self.conv1(x))
