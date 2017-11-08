@@ -10,7 +10,7 @@ python caffe_to_chainer.py experiments/paper_enc_dec.yml
 python test.py ./experiments/test_caffemodel.yml
 
 # Training by cityscapes
-python ./pretrained_model/create_class_weight.py [mean or log] --num_class 19 --base_dir ./dataset --source ./data.txt
+python create_class_weight.py [mean or log] --num_class 19 --base_dir ./dataset --source ./data.txt
 python train.py experiments/paper_enc.yml
 ```
 

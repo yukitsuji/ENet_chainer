@@ -42,7 +42,7 @@ def train_enet():
                                config['extension'], devices=devices)
     trainer.run()
     chainer.serializers.save_npz(os.path.join(config['results'], 'model.npz'),
-                                 model)
+                                 model.predictor)
 
 def main():
     train_enet()

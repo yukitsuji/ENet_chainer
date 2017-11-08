@@ -5,14 +5,15 @@
 # typeでBlockまたはBottleneckを設定できる
 # Bottlenecで対応可能なparamは、Defaultのみ
 # """
-end_trigger: [90000, "iteration"]
-results: results/sample
+end_trigger: [900000, "iteration"]
+results: results/paper
 gpus: [0]
 mode: Train
 seed: 1
 
 model:
   name: ENetBasic
+  pretrained_model: # results/enc1_paper/model.npz
   architecture:
     initial_block:
       type: InitialBlock

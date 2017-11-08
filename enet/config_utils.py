@@ -149,4 +149,5 @@ def load_dataset(config):
 
 def get_model(config):
     Model = getattr(enet_paper, config['name'])
-    return Model(config["architecture"])
+    pretrained_model = parse_dict(config, 'pretrained_model', None)
+    return Model(config["architecture"], pretrained_model=pretrained_model)
