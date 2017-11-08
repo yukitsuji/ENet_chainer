@@ -33,6 +33,7 @@ model:
         out_ch: 64
         downsample: True
         drop_ratio: 0.01
+        use_bn: True
 
     bottleneck1_1:
       type: Block
@@ -42,6 +43,7 @@ model:
         mid_ch: 16
         out_ch: 64
         drop_ratio: 0.01
+        use_bn: True
 
     bottleneck2_0:
       type: Block
@@ -50,6 +52,7 @@ model:
         mid_ch: 32
         out_ch: 128
         downsample: 1
+        use_bn: True
 
     bottleneck2_1:
       type: Bottleneck2
@@ -59,6 +62,7 @@ model:
         mid_ch: 32
         out_ch: 128
         drop_ratio: 0.01
+        use_bn: True
 
     fullconv:
       type: FullConv

@@ -136,7 +136,7 @@ class SymmetricConvBNPReLU(SymmetricConvPReLU):
 class InitialBlock(chainer.Chain):
     """Initial Block"""
     def __init__(self, in_ch=3, out_ch=13, ksize=3, stride=2, pad=1,
-                 nobias=False):
+                 nobias=False, use_bn=True):
         super(InitialBlock, self).__init__()
         with self.init_scope():
             self.ib_conv = L.Convolution2D(in_ch, out_ch, ksize, stride,
@@ -162,26 +162,34 @@ class Block(chainer.Chain):
     """Block Abstract"""
     def __init__(self, in_ch=3, mid_ch=0, out_ch=13, ksize=3, stride=1, pad=1,
                  dilation=1, nobias=False, symmetric=False, drop_ratio=0.0,
-                 downsample=False, upsample=False, p=None):
+                 downsample=False, upsample=False, p=None, use_bn=True):
         super(Block, self).__init__()
         k1, k2, s1 = self.calc_param(downsample, symmetric)
         self.p = p
         self.drop_ratio = drop_ratio
         self.downsample = downsample
         self.upsample = upsample
+
         with self.init_scope():
-            self.conv1 = ConvBNPReLU(in_ch, mid_ch, k1, s1, 0,
-                                      nobias=True)
-            ConvBlock = SymmetricConvBNPReLU if symmetric else ConvBNPReLU
+            this_mod = sys.modules[__name__]
+            conv_type = "ConvBN" if use_bn else "Conv"
+            ConvBlock = getattr(this_mod, conv_type + "PReLU")
+            self.conv1 = ConvBlock(in_ch, mid_ch, k1, s1, 0, nobias=True)
+
+            conv_type2 = conv_type + "PReLU"
+            conv_type2 = "Symmetric" + conv_type2 if symmetric else conv_type2
+            ConvBlock = getattr(this_mod, conv_type2)
             self.conv2 = ConvBlock(mid_ch, mid_ch, k2, stride,
-                                    pad, dilation,
-                                    nobias=False,
-                                    upsample=upsample)
-            self.conv3 = ConvBN(mid_ch, out_ch, 1, 1, 0, nobias=True)
+                                   pad, dilation,
+                                   nobias=False,
+                                   upsample=upsample)
+
+            ConvBlock = getattr(this_mod, conv_type)
+            self.conv3 = ConvBlock(mid_ch, out_ch, 1, 1, 0, nobias=True)
             self.prelu = L.PReLU()
             if downsample:
-                self.conv = L.Convolution2D(in_ch, out_ch, 1, 1, 0, nobias=True)
-                self.bn = L.BatchNormalization(out_ch, eps=1e-5, decay=0.95)
+                ConvBlock = getattr(this_mod, conv_type)
+                self.conv = ConvBlock(in_ch, out_ch, 1, 1, 0, nobias=True)
             # if self.upsample:
                 # self.p = p
 
@@ -208,7 +216,7 @@ class Block(chainer.Chain):
         h1 = spatial_dropout(h1, self.drop_ratio)
         if self.downsample:
             self.p = F.MaxPooling2D(2, 2)
-            h1 += self.bn(self.conv(_without_cudnn(self.p, x)))
+            h1 += self.conv(_without_cudnn(self.p, x))
         elif self.upsample:
             h1 += self._upsampling_2d(self.conv(self.bn(x)), self.p)
         else:
@@ -222,7 +230,7 @@ class Block(chainer.Chain):
         h1 = self.conv3(h1)
         if self.downsample:
             self.p = F.MaxPooling2D(2, 2)
-            h1 += self.bn(self.conv(_without_cudnn(self.p, x)))
+            h1 += self.conv(_without_cudnn(self.p, x))
         elif self.upsample:
             h1 += self._upsampling_2d(self.conv(self.bn(x)), self.p)
         else:
@@ -232,10 +240,11 @@ class Block(chainer.Chain):
 
 class Bottleneck2(chainer.Chain):
     """Bottleneck1"""
-    def __init__(self, in_ch=3, mid_ch=0, out_ch=13, drop_ratio=0.0):
+    def __init__(self, in_ch=3, mid_ch=0, out_ch=13, drop_ratio=0.0,
+                 use_bn=True):
         super(Bottleneck2, self).__init__()
         basic_config = {"in_ch": in_ch, "mid_ch": mid_ch, "out_ch": out_ch,
-                        "drop_ratio": drop_ratio}
+                        "drop_ratio": drop_ratio, "use_bn": use_bn}
         with self.init_scope():
             self.block1 = Block(**basic_config)
             self.block2 = Block(**self.to_dilated(basic_config, 2))
