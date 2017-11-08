@@ -116,6 +116,10 @@ updater:
 iterator:
   name: MultiprocessIterator
   batchsize: 4
+  # args:
+    # n_processes: 8
+    # n_prefetch: 1
+    # shared_mem: 6324224
 
 optimizer:
   name: MomentumSGD

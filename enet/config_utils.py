@@ -118,13 +118,16 @@ def create_optimizer(config, model):
 
 def create_iterator(train_data, test_data, config):
     Iterator = getattr(chainer.iterators, config['name'])
-    train_iter = Iterator(train_data, config['batchsize'])
-    test_iter = Iterator(test_data, config['batchsize'], repeat=False)
+    args = parse_dict(config, 'args', {})
+    train_iter = Iterator(train_data, config['batchsize'], **args)
+    args['repeat'] = False
+    test_iter = Iterator(test_data, config['batchsize'], **args)
     return train_iter, test_iter
 
 def parse_devices(gpus):
     if gpus:
         devices = {'main': gpus[0]}
+        chainer.cuda.get_device_from_id(gpus[0]).use()
         for gid in gpus[1:]:
             devices['gpu{}'.format(gid)] = gid
         return devices
