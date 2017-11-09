@@ -84,6 +84,11 @@ def create_extension(trainer, test_iter, model, config, devices=None):
             cl = getattr(extensions, key)
             trigger = parse_trigger(ext['trigger'])
             trainer.extend(cl(), trigger=trigger)
+        elif key == 'snapshot_object':
+            cl = getattr(extensions, key)
+            trigger = parse_trigger(ext['trigger'])
+            trainer.extend(cl(model, 'enet_{.updater.iteration}'),
+                           trigger=trigger)
         elif key == 'LogReport':
             cl = getattr(extensions, key)
             trigger = parse_trigger(ext['trigger'])

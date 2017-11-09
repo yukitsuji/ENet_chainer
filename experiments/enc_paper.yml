@@ -135,6 +135,8 @@ extension:
     trigger: [1, 'epoch']
   snapshot:
       trigger: [2, "epoch"]
+  snapshot_object:
+      trigger: [2, "epoch"]
   LogReport:
     trigger: [1, "epoch"]
   PrintReport:
