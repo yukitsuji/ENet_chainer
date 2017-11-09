@@ -27,8 +27,6 @@ from enet.models import enet_paper
 
 def train_enet():
     """Training ENet."""
-    # chainer.config.enable_backprop = False
-    # chainer.config.train = False
     config = parse_args()
     train_data, test_data = load_dataset(config["dataset"])
     train_iter, test_iter = create_iterator(train_data, test_data, config['iterator'])

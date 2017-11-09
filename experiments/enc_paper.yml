@@ -153,3 +153,7 @@ extension:
     trigger: [1, "epoch"]
   ProgressBar:
       update_interval: 10
+  PolynomialShift:
+    trigger: [1, 'iteration']
+    args:
+      power: 0.9

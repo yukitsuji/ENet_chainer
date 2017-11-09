@@ -54,6 +54,7 @@ model:
         out_ch: 128
         downsample: 1
         use_bn: True
+        drop_ratio: 0.1
 
     bottleneck2_1:
       type: Bottleneck2
@@ -64,6 +65,7 @@ model:
         out_ch: 128
         drop_ratio: 0.01
         use_bn: True
+        drop_ratio: 0.1
 
     fullconv:
       type: FullConv
@@ -136,9 +138,9 @@ extension:
     name: SemanticSegmentationEvaluator
     trigger: [1, 'epoch']
   snapshot:
-      trigger: [2, "epoch"]
+    trigger: [2, "epoch"]
   snapshot_object:
-      trigger: [2, "epoch"]
+    trigger: [2, "epoch"]
   LogReport:
     trigger: [1, "epoch"]
   PrintReport:
@@ -152,4 +154,8 @@ extension:
       # lr
     trigger: [1, "epoch"]
   ProgressBar:
-      update_interval: 10
+    update_interval: 10
+  PolynomialShift:
+    trigger: [1, 'iteration']
+    args:
+      power: 0.9

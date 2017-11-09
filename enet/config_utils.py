@@ -27,18 +27,11 @@ from chainer.training import extensions
 import chainercv
 
 from enet.models import enet_paper
+from enet.extension_util import lr_utils
 
 from collections import OrderedDict
 yaml.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
     lambda loader, node: OrderedDict(loader.construct_pairs(node)))
-
-# from iou_tracker.models import rnn_predictor
-# from iou_tracker.models import da_predictor
-# from iou_tracker.models import siamese_predictor
-# from iou_tracker.data_util import mot_loader, cuhk_loader
-# from iou_tracker.network_util import updater, siamese_updater
-# from iou_tracker.network_util import evaluator, siamese_evaluator
-# from iou_tracker.data_util.utils import split_dataset, split_dataset_4
 
 
 SEED = 0
@@ -101,6 +94,15 @@ def create_extension(trainer, test_iter, model, config, devices=None):
         elif key == "ProgressBar":
             cl = getattr(extensions, key)
             trainer.extend(cl(update_interval=ext['update_interval']))
+        elif key == "Poly":
+            cl = getattr(lr_utils, key)
+            trigger = parse_trigger(ext['trigger'])
+            len_dataset = len(trainer.updater.get_iterator('main').dataset)
+            batchsize = len(trainer.updater.get_iterator('main').batchsize)
+            args = parse_dict(config, 'args', {})
+            args.update({'len_dataset': len_dataset, 'batchsize': batchsize,
+                         'trigger:': trainer.stop_trigger})
+            trainer.extend(cl(**args), trigger=trigger)
     return trainer
 
 def create_updater(train_iter, optimizer, config, devices):
