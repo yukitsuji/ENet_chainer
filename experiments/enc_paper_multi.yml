@@ -10,6 +10,7 @@ results: results/paper
 gpus: [0, 1, 2, 3]
 mode: Train
 seed: 1
+class_weight: ./pretrained_model/mean_weight.npy
 
 model:
   name: ENetBasic
@@ -125,7 +126,7 @@ iterator:
 optimizer:
   name: MomentumSGD
   args:
-    lr: 0.01
+    lr: 0.001
     momentum: 0.9
   hook:
     WeightDecay: 0.0002

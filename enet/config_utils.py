@@ -138,6 +138,14 @@ def parse_devices(gpus):
         return devices
     return None
 
+def get_class_weight(config):
+    path = parse_dict(config, 'class_weight', None)
+    if path:
+        class_weight = np.load(path)
+        return class_weight
+    else:
+        None
+
 def get_class(mod):
     assert len(mod) > 0, (name, mod)
     m = sys.modules[
