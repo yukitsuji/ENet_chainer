@@ -2,23 +2,27 @@
 Implementation of ENet by chainer
 
 ```
-# Test by cityscapes
+# Test using caffemodel
 ## Download ENet caffemodel and convert it to chainer's weight format
 ## by using https://github.com/TimoSaemann/ENet/tree/master/enet_weights_zoo
 cd converter && ./enet_weight_download.sh
-python caffe_to_chainer.py experiments/paper_enc_dec.yml
-python test.py ./experiments/test_caffemodel.yml
+# TODO: python caffe_to_chainer.py experiments/paper_enc_dec.yml
+# TODO: python test.py ./experiments/test_caffemodel.yml
 
-# Training by cityscapes
+######## Training by cityscapes ########
+# Calculate class balancing
 python calculate_class_weight.py [mean or loss] --base_dir data_dir --result name --source ./pretrained_model/data.txt --num_classes 19 --dataset [cityscapes or camvid]
-python train.py experiments/paper_enc.yml
+# Training encoder by cityscapes
+・Single GPU
+python train.py experiments/enc_paper.yml
+・Multi GPUs
+python train.py experiments/enc_paper.multi.yml
 ```
 
 # Implementation
 - Spatial Dropout using cupy
 - Baseline, model architecture
 - Evaluate by citydataset
-- Compare SegNet
 - Calculate class weights for training model
 
 # Requirement
