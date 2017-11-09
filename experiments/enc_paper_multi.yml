@@ -7,7 +7,7 @@
 # """
 end_trigger: [900000, "iteration"]
 results: results/paper
-gpus: [0]
+gpus: [0, 1, 2, 3]
 mode: Train
 seed: 1
 
@@ -111,16 +111,16 @@ loss:
     class_weight_npy: dataset/Cityscapes/class_weight_gtFine.npy
 
 updater:
-  name: StandardUpdater #ParallelUpdater
+  name: ParallelUpdater
 
 iterator:
   name: MultiprocessIterator
   train_batchsize: 4
   test_batchsize: 4
-  # args:
-    # n_processes: 8
-    # n_prefetch: 1
-    # shared_mem: 6324224
+  args:
+    n_processes: 8
+    n_prefetch: 1
+    shared_mem: 6324224
 
 optimizer:
   name: MomentumSGD

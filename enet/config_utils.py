@@ -124,9 +124,9 @@ def create_optimizer(config, model):
 def create_iterator(train_data, test_data, config):
     Iterator = getattr(chainer.iterators, config['name'])
     args = parse_dict(config, 'args', {})
-    train_iter = Iterator(train_data, config['batchsize'], **args)
+    train_iter = Iterator(train_data, config['train_batchsize'], **args)
     args['repeat'] = False
-    test_iter = Iterator(test_data, config['batchsize'], **args)
+    test_iter = Iterator(test_data, config['test_batchsize'], **args)
     return train_iter, test_iter
 
 def parse_devices(gpus):
