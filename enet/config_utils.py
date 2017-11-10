@@ -97,15 +97,15 @@ def create_extension(trainer, test_iter, model, config, devices=None):
         elif key == 'observe_lr':
             cl = getattr(extensions, key)
             trainer.extend(cl())
-        elif key == "Poly":
+        elif key == "PolynomialShift":
             cl = getattr(lr_utils, key)
             trigger = parse_trigger(ext['trigger'])
             len_dataset = len(trainer.updater.get_iterator('main').dataset)
-            batchsize = len(trainer.updater.get_iterator('main').batchsize)
+            batchsize = trainer.updater.get_iterator('main').batch_size
             args = parse_dict(config, 'args', {})
             args.update({'len_dataset': len_dataset, 'batchsize': batchsize,
-                         'trigger:': trainer.stop_trigger})
-            trainer.extend(cl(**args), trigger=trigger)
+                         'stop_trigger': trainer.stop_trigger})
+            trainer.extend(cl(**args))
     return trainer
 
 def create_updater(train_iter, optimizer, config, devices):
