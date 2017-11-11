@@ -158,6 +158,7 @@ class InitialBlock(chainer.Chain):
         h = self.ib_bn(h)
         return self.ib_prelu(h)
 
+
 class Block(chainer.Chain):
     """Block Abstract"""
     def __init__(self, in_ch=3, mid_ch=0, out_ch=13, ksize=3, stride=1, pad=1,
@@ -338,7 +339,6 @@ class ENetBasic(chainer.Chain):
             label = self.xp.argmax(x.data, axis=1).astype("i")
             label = chainer.cuda.to_cpu(label)
             return list(label)
-
 
     #     h = self._upsampling_2d(h, p4)
     #     h = self.conv_decode4_bn(self.conv_decode4(h))

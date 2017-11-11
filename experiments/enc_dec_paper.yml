@@ -7,7 +7,7 @@
 # """
 end_trigger: [900000, "iteration"]
 results: results/paper
-gpus: [0, 1, 2, 3]
+gpus: [0]
 mode: Train
 seed: 1
 class_weight: ./pretrained_model/mean_weight.npy
@@ -54,7 +54,6 @@ model:
         out_ch: 128
         downsample: 1
         use_bn: True
-        drop_ratio: 0.1
 
     bottleneck2_1:
       type: Bottleneck2
@@ -65,12 +64,52 @@ model:
         out_ch: 128
         drop_ratio: 0.01
         use_bn: True
-        drop_ratio: 0.1
+
+    bottleneck4_0:
+      type: Block
+      args:
+        in_ch: 128
+        mid_ch: 16
+        out_ch: 64
+        drop_ratio: 0.01
+        use_bn: True
+        upsample: 1
+        p: bottleneck2_0
+
+    bottleneck4_1:
+      type: Block
+      loop: 2
+      args:
+        in_ch: 64
+        mid_ch: 16
+        out_ch: 64
+        drop_ratio: 0.01
+        use_bn: True
+
+    bottleneck5_0:
+      type: Block
+      args:
+        in_ch: 64
+        mid_ch: 4
+        out_ch: 16
+        drop_ratio: 0.01
+        use_bn: True
+        upsample: 1
+        p: bottleneck1_0
+
+    bottleneck5_1:
+      type: Block
+      args:
+        in_ch: 16
+        mid_ch: 4
+        out_ch: 16
+        drop_ratio: 0.01
+        use_bn: True
 
     fullconv:
       type: FullConv
       args:
-        in_ch: 128
+        in_ch: 16
         out_ch: 19
 
 dataset:
@@ -114,21 +153,21 @@ loss:
     class_weight_npy: dataset/Cityscapes/class_weight_gtFine.npy
 
 updater:
-  name: ParallelUpdater
+  name: StandardUpdater #ParallelUpdater
 
 iterator:
   name: MultiprocessIterator
-  train_batchsize: 16
+  train_batchsize: 4
   test_batchsize: 4
-  args:
-    n_processes: 8
-    n_prefetch: 1
-    shared_mem: 6324224
+  # args:
+    # n_processes: 8
+    # n_prefetch: 1
+    # shared_mem: 6324224
 
 optimizer:
   name: MomentumSGD
   args:
-    lr: 0.001
+    lr: 0.01
     momentum: 0.9
   hook:
     WeightDecay: 0.0002
@@ -138,9 +177,9 @@ extension:
     name: SemanticSegmentationEvaluator
     trigger: [1, 'epoch']
   snapshot:
-    trigger: [2, "epoch"]
+      trigger: [2, "epoch"]
   snapshot_object:
-    trigger: [2, "epoch"]
+      trigger: [2, "epoch"]
   LogReport:
     trigger: [1, "epoch"]
   PrintReport:
@@ -154,7 +193,7 @@ extension:
       # lr
     trigger: [1, "epoch"]
   ProgressBar:
-    update_interval: 10
+      update_interval: 10
   PolynomialShift:
     trigger: [1, 'iteration']
     args:

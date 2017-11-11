@@ -24,6 +24,7 @@ python train.py experiments/enc_paper.multi.yml
 - Baseline, model architecture
 - Evaluate by citydataset
 - Calculate class weights for training model
+- Poly leraning rate policy
 
 # Requirement
 - Python3
@@ -33,7 +34,7 @@ python train.py experiments/enc_paper.multi.yml
 - OpenCV
 
 # TODO
-- Create decoder module
+- Create decoder module (Priority 1)
 - Visualize output of cityscapes
 - Convert caffemodel to chainer's model format
 - Create merge function between convolution and batch normalization
