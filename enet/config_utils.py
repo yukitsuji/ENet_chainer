@@ -94,6 +94,9 @@ def create_extension(trainer, test_iter, model, config, devices=None):
         elif key == "ProgressBar":
             cl = getattr(extensions, key)
             trainer.extend(cl(update_interval=ext['update_interval']))
+        elif key == 'observe_lr':
+            cl = getattr(extensions, key)
+            trainer.extend(cl())
         elif key == "Poly":
             cl = getattr(lr_utils, key)
             trigger = parse_trigger(ext['trigger'])

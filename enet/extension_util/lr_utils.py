@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from chainer.training import extensions
+from chainer.training import extension
 
 
 class PolynomialShift(extension.Extension):

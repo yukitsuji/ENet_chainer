@@ -149,10 +149,11 @@ extension:
       validation/main/miou
       validation/main/pixel_accuracy
       validation/main/mean_class_accuracy
-      # lr
+      lr
     trigger: [1, "epoch"]
   ProgressBar:
       update_interval: 10
+  observe_lr:
   PolynomialShift:
     trigger: [1, 'iteration']
     args:
