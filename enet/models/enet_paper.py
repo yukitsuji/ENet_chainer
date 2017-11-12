@@ -193,6 +193,9 @@ class Block(chainer.Chain):
                 ConvBlock = getattr(this_mod, conv_type)
                 self.conv = ConvBlock(in_ch, out_ch, 1, 1, 0, nobias=True)
                 self.p = F.MaxPooling2D(2, 2)
+            if upsample:
+                ConvBlock = getattr(this_mod, conv_type)
+                self.conv = ConvBlock(in_ch, out_ch, 1, 1, 0, nobias=True)
 
     def calc_param(self, downsample, symmetric, upsample):
         k1, s1 = (2, 2) if downsample else (1, 1)
@@ -218,7 +221,7 @@ class Block(chainer.Chain):
         if self.downsample:
             h1 += self.conv(_without_cudnn(self.p, x))
         elif self.upsample:
-            h1 += self._upsampling_2d(self.conv(self.bn(x)), self.p)
+            h1 += self._upsampling_2d(self.conv(x), self.p)
         else:
             h1 += x
         # h1 = h1 if not self.downsample else h1 + self.bn(self.conv(x))
@@ -231,7 +234,7 @@ class Block(chainer.Chain):
         if self.downsample:
             h1 += self.conv(_without_cudnn(self.p, x))
         elif self.upsample:
-            h1 += self._upsampling_2d(self.conv(self.bn(x)), self.p)
+            h1 += self._upsampling_2d(self.conv(x), self.p)
         else:
             h1 += x
         return self.prelu(h1)
@@ -315,7 +318,7 @@ class ENetBasic(chainer.Chain):
                 for l in range(loop):
                     layer = Model(**config['args'])
                     if hasattr(layer, "upsample") and layer.upsample:
-                        layer.p = get_pool_index(config['p'])
+                        layer.p = self.get_pool_index(config['p'])
                     name = key + '_{}'.format(l)
                     setattr(self, name, layer)
                     self.layers.append(getattr(self, name))
