@@ -33,10 +33,10 @@ def calc_median_frequency(classes, present_num):
 
 def calc_log_frequency(classes, value=1.02):
     """Class balancing by ENet method.
-       prob = each_sum_pixel / each_sum_pixel.sum()
+       prob = each_sum_pixel / each_sum_pixel.max()
        a = 1 / (log(1.02 + prob)).
     """
-    class_freq = classes / classes.sum()
+    class_freq = classes / classes.max() # LinkNet is max, but ENet is sum
     print(class_freq)
     print(np.log(value + class_freq))
     return 1 / np.log(value + class_freq)

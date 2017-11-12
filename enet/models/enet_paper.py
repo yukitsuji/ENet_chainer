@@ -1,5 +1,6 @@
 from __future__ import division
 
+import functools
 import numpy as np
 import sys
 
@@ -165,7 +166,7 @@ class Block(chainer.Chain):
                  dilation=1, nobias=False, symmetric=False, drop_ratio=0.0,
                  downsample=False, upsample=False, p=None, use_bn=True):
         super(Block, self).__init__()
-        k1, k2, s1 = self.calc_param(downsample, symmetric)
+        k1, k2, s1 = self.calc_param(downsample, symmetric, upsample)
         self.p = p
         self.drop_ratio = drop_ratio
         self.downsample = downsample
@@ -191,12 +192,11 @@ class Block(chainer.Chain):
             if downsample:
                 ConvBlock = getattr(this_mod, conv_type)
                 self.conv = ConvBlock(in_ch, out_ch, 1, 1, 0, nobias=True)
-            # if self.upsample:
-                # self.p = p
+                self.p = F.MaxPooling2D(2, 2)
 
-    def calc_param(self, downsample, symmetric):
+    def calc_param(self, downsample, symmetric, upsample):
         k1, s1 = (2, 2) if downsample else (1, 1)
-        k2 = 5 if symmetric else 3
+        k2 = 2 if upsample else (5 if symmetric else 3)
         return k1, k2, s1
 
     def _upsampling_2d(self, x, pool):
@@ -216,7 +216,6 @@ class Block(chainer.Chain):
         h1 = self.conv3(h1)
         h1 = spatial_dropout(h1, self.drop_ratio)
         if self.downsample:
-            self.p = F.MaxPooling2D(2, 2)
             h1 += self.conv(_without_cudnn(self.p, x))
         elif self.upsample:
             h1 += self._upsampling_2d(self.conv(self.bn(x)), self.p)
@@ -230,7 +229,6 @@ class Block(chainer.Chain):
         h1 = self.conv2(h1)
         h1 = self.conv3(h1)
         if self.downsample:
-            self.p = F.MaxPooling2D(2, 2)
             h1 += self.conv(_without_cudnn(self.p, x))
         elif self.upsample:
             h1 += self._upsampling_2d(self.conv(self.bn(x)), self.p)
@@ -316,12 +314,19 @@ class ENetBasic(chainer.Chain):
                 loop = parse_dict(config, 'loop', 1)
                 for l in range(loop):
                     layer = Model(**config['args'])
+                    if hasattr(layer, "upsample") and layer.upsample:
+                        layer.p = get_pool_index(config['p'])
                     name = key + '_{}'.format(l)
                     setattr(self, name, layer)
                     self.layers.append(getattr(self, name))
 
         if pretrained_model:
             chainer.serializers.load_npz(pretrained_model, self)
+
+    def get_pool_index(self, p_name):
+        for layer in self.children():
+            if p_name in layer.name:
+                return layer.p
 
     def __call__(self, x):
         for layer in self.layers:

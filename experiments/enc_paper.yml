@@ -70,6 +70,9 @@ model:
       args:
         in_ch: 128
         out_ch: 19
+        ksize: 1
+        pad: 0
+        stride: 1
 
 dataset:
   train:

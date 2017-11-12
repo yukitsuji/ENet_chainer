@@ -62,19 +62,21 @@ model:
         in_ch: 128
         mid_ch: 32
         out_ch: 128
-        drop_ratio: 0.01
+        drop_ratio: 0.1
         use_bn: True
 
     bottleneck4_0:
       type: Block
+      p: bottleneck2_0
       args:
         in_ch: 128
         mid_ch: 16
         out_ch: 64
-        drop_ratio: 0.01
+        drop_ratio: 0.1
         use_bn: True
         upsample: 1
-        p: bottleneck2_0
+        pad: 0
+        stride: 2
 
     bottleneck4_1:
       type: Block
@@ -83,19 +85,21 @@ model:
         in_ch: 64
         mid_ch: 16
         out_ch: 64
-        drop_ratio: 0.01
+        drop_ratio: 0.1
         use_bn: True
 
     bottleneck5_0:
       type: Block
+      p: bottleneck1_0
       args:
         in_ch: 64
         mid_ch: 4
         out_ch: 16
-        drop_ratio: 0.01
+        drop_ratio: 0.1
         use_bn: True
         upsample: 1
-        p: bottleneck1_0
+        pad: 0
+        stride: 2
 
     bottleneck5_1:
       type: Block
@@ -103,14 +107,19 @@ model:
         in_ch: 16
         mid_ch: 4
         out_ch: 16
-        drop_ratio: 0.01
+        drop_ratio: 0.1
         use_bn: True
 
+    fullconv:
+      type: Conv
     fullconv:
       type: FullConv
       args:
         in_ch: 16
         out_ch: 19
+        ksize: 2
+        pad: 0
+        stride: 2
 
 dataset:
   train:
@@ -127,7 +136,7 @@ dataset:
       rotate: False
       fliplr: True
       n_class: 19
-      scale_label: 8
+      scale_label: 1
 
   valid:
     module: enet.data_util.cityscapes.cityscapes_transformed
@@ -143,7 +152,7 @@ dataset:
       rotate: False
       fliplr: False
       n_class: 19
-      scale_label: 8
+      scale_label: 1
 
 loss:
   module: loss.pspnet_loss

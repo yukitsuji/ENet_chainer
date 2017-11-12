@@ -31,7 +31,6 @@ class PolynomialShift(extension.Extension):
 
         optimizer = trainer.updater.get_optimizer('main')
         value = self._init * ((1 - (self._t / self._maxiter)) ** self._power)
-        print(value, self._maxiter, getattr(optimizer, self._attr))
         setattr(optimizer, self._attr, value)
         self._last_value = value
 
