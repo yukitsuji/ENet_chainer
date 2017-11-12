@@ -311,6 +311,8 @@ class ENetBasic(chainer.Chain):
         n_class = None
         this_mod = sys.modules[__name__]
         self.layers = []
+        pretrained_path = parse_dict(pretrained_model, 'path', None)
+        pretrained_name = parse_dict(pretrained_name, 'name', None)
         with self.init_scope():
             for key, config in model_config.items():
                 Model = getattr(this_mod, config['type'])
@@ -322,9 +324,11 @@ class ENetBasic(chainer.Chain):
                     name = key + '_{}'.format(l)
                     setattr(self, name, layer)
                     self.layers.append(getattr(self, name))
+                if key == pretrained_name:
+                    chainer.serializers.load_npz(pretrained_path, self)
 
-        if pretrained_model:
-            chainer.serializers.load_npz(pretrained_model, self)
+        if  pretrained_path and pretrained_name is None:
+            chainer.serializers.load_npz(pretrained_path, self)
 
     def get_pool_index(self, p_name):
         for layer in self.children():

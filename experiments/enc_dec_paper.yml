@@ -14,7 +14,9 @@ class_weight: ./pretrained_model/mean_weight.npy
 
 model:
   name: ENetBasic
-  pretrained_model: # results/enc1_paper/model.npz
+  pretrained_model:
+    path: # results/enc1_paper/model.npz
+    name: bottleneck2_1
   architecture:
     initial_block:
       type: InitialBlock
