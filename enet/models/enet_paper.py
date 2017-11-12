@@ -312,7 +312,7 @@ class ENetBasic(chainer.Chain):
         this_mod = sys.modules[__name__]
         self.layers = []
         pretrained_path = parse_dict(pretrained_model, 'path', None)
-        pretrained_name = parse_dict(pretrained_name, 'name', None)
+        pretrained_name = parse_dict(pretrained_model, 'name', None)
         with self.init_scope():
             for key, config in model_config.items():
                 Model = getattr(this_mod, config['type'])

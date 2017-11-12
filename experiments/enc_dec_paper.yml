@@ -5,7 +5,7 @@
 # typeでBlockまたはBottleneckを設定できる
 # Bottlenecで対応可能なparamは、Defaultのみ
 # """
-end_trigger: [900000, "iteration"]
+end_trigger: [100000, "iteration"]
 results: results/paper
 gpus: [0]
 mode: Train
@@ -170,10 +170,10 @@ iterator:
   name: MultiprocessIterator
   train_batchsize: 4
   test_batchsize: 4
-  # args:
-    # n_processes: 8
-    # n_prefetch: 1
-    # shared_mem: 6324224
+  args:
+    n_processes: 4
+    n_prefetch: 1
+    shared_mem: 6324224
 
 optimizer:
   name: MomentumSGD

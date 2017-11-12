@@ -5,7 +5,7 @@
 # typeでBlockまたはBottleneckを設定できる
 # Bottlenecで対応可能なparamは、Defaultのみ
 # """
-end_trigger: [900000, "iteration"]
+end_trigger: [100000, "iteration"]
 results: results/paper
 gpus: [0]
 mode: Train
@@ -14,7 +14,9 @@ class_weight: ./pretrained_model/mean_weight.npy
 
 model:
   name: ENetBasic
-  pretrained_model: # results/enc1_paper/model.npz
+  pretrained_model:
+    path: # results/enc1_paper/model.npz
+    name:
   architecture:
     initial_block:
       type: InitialBlock
@@ -107,13 +109,6 @@ dataset:
       n_class: 19
       scale_label: 8
 
-loss:
-  module: loss.pspnet_loss
-  name: PixelwiseSoftmaxClassifier
-  args:
-    ignore_label: -1
-    class_weight_npy: dataset/Cityscapes/class_weight_gtFine.npy
-
 updater:
   name: StandardUpdater #ParallelUpdater
 
@@ -121,10 +116,10 @@ iterator:
   name: MultiprocessIterator
   train_batchsize: 4
   test_batchsize: 4
-  # args:
-    # n_processes: 8
-    # n_prefetch: 1
-    # shared_mem: 6324224
+  args:
+    n_processes: 4
+    n_prefetch: 1
+    shared_mem: 6324224
 
 optimizer:
   name: MomentumSGD

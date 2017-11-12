@@ -5,8 +5,8 @@
 # typeでBlockまたはBottleneckを設定できる
 # Bottlenecで対応可能なparamは、Defaultのみ
 # """
-end_trigger: [900000, "iteration"]
-results: results/paper
+end_trigger: [100000, "iteration"]
+results: results/paper_multi
 gpus: [0, 1, 2, 3]
 mode: Train
 seed: 1
@@ -14,7 +14,9 @@ class_weight: ./pretrained_model/mean_weight.npy
 
 model:
   name: ENetBasic
-  pretrained_model: # results/enc1_paper/model.npz
+  pretrained_model:
+    path: # results/enc1_paper/model.npz
+    name:
   architecture:
     initial_block:
       type: InitialBlock
