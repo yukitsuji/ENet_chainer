@@ -42,6 +42,7 @@ def parse_dict(dic, key, value=None):
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('config', default='default.yml', type=str, help='configure file')
+    parser.add_argument('--img_path', default='./', type=str, help='image path')
     args = parser.parse_args()
     config = yaml.load(open(args.config))
 
@@ -53,6 +54,7 @@ def parse_args():
     if config["mode"] == "Test":
         chainer.global_config.train = False
         chainer.global_config.enable_backprop = False
+        return config, args.img_path
 
     subprocess.check_call(["mkdir", "-p", config["results"]])
     shutil.copy(args.config, os.path.join(config['results'], args.config.split('/')[-1]))
@@ -126,6 +128,13 @@ def create_optimizer(config, model):
             opt.add_hook(hook(value))
     return opt
 
+def create_iterator_test(test_data, config):
+    Iterator = getattr(chainer.iterators, config['name'])
+    args = parse_dict(config, 'args', {})
+    args['repeat'] = False
+    test_iter = Iterator(test_data, config['test_batchsize'], **args)
+    return test_iter
+
 def create_iterator(train_data, test_data, config):
     Iterator = getattr(chainer.iterators, config['name'])
     args = parse_dict(config, 'args', {})
@@ -156,6 +165,13 @@ def get_class(mod):
     m = sys.modules[
         mod] if mod in sys.modules else importlib.import_module(mod)
     return m
+
+def load_dataset_test(config):
+    test_config = config['test']
+    cl = get_class(test_config['module'])
+    test_loader = getattr(cl, test_config['name'])
+    test_data = test_loader(**test_config['args'])
+    return test_data
 
 def load_dataset(config):
     train_config = config['train']

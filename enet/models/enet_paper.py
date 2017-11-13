@@ -279,14 +279,14 @@ class Bottleneck2(chainer.Chain):
         return x
 
     def predict(self, x):
-        x = self.block1(x)
-        x = self.block2(x)
-        x = self.block3(x)
-        x = self.block4(x)
-        x = self.block5(x)
-        x = self.block6(x)
-        x = self.block7(x)
-        x = self.block8(x)
+        x = self.block1.predict(x)
+        x = self.block2.predict(x)
+        x = self.block3.predict(x)
+        x = self.block4.predict(x)
+        x = self.block5.predict(x)
+        x = self.block6.predict(x)
+        x = self.block7.predict(x)
+        x = self.block8.predict(x)
         return x
 
 
