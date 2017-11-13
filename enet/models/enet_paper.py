@@ -137,8 +137,9 @@ class SymmetricConvBNPReLU(SymmetricConvPReLU):
 class InitialBlock(chainer.Chain):
     """Initial Block"""
     def __init__(self, in_ch=3, out_ch=13, ksize=3, stride=2, pad=1,
-                 nobias=False, use_bn=True):
+                 nobias=False, use_bn=True, train=True):
         super(InitialBlock, self).__init__()
+        self.train = train
         with self.init_scope():
             self.ib_conv = L.Convolution2D(in_ch, out_ch, ksize, stride,
                                            pad=pad, nobias=nobias)
@@ -146,11 +147,12 @@ class InitialBlock(chainer.Chain):
             self.ib_prelu = L.PReLU()
 
     def __call__(self, x):
-        h1 = self.ib_conv(x)
-        h2 = F.max_pooling_2d(x, 2, 2)
-        h = F.concat((h1, h2), axis=1)
-        h = self.ib_bn(h)
-        return self.ib_prelu(h)
+        with chainer.using_config('train', self.train):
+            h1 = self.ib_conv(x)
+            h2 = F.max_pooling_2d(x, 2, 2)
+            h = F.concat((h1, h2), axis=1)
+            h = self.ib_bn(h)
+            return self.ib_prelu(h)
 
     def predict(self, x):
         h1 = self.ib_conv(x)
@@ -164,13 +166,15 @@ class Block(chainer.Chain):
     """Block Abstract"""
     def __init__(self, in_ch=3, mid_ch=0, out_ch=13, ksize=3, stride=1, pad=1,
                  dilation=1, nobias=False, symmetric=False, drop_ratio=0.0,
-                 downsample=False, upsample=False, p=None, use_bn=True):
+                 downsample=False, upsample=False, p=None, use_bn=True,
+                 train=True):
         super(Block, self).__init__()
         k1, k2, s1 = self.calc_param(downsample, symmetric, upsample)
         self.p = p
         self.drop_ratio = drop_ratio
         self.downsample = downsample
         self.upsample = upsample
+        self.train = train
 
         with self.init_scope():
             this_mod = sys.modules[__name__]
@@ -214,18 +218,19 @@ class Block(chainer.Chain):
             stride=(pool.sy, pool.sx), pad=(pool.ph, pool.pw), outsize=outsize)
 
     def __call__(self, x):
-        h1 = self.conv1(x)
-        h1 = self.conv2(h1)
-        h1 = self.conv3(h1)
-        h1 = spatial_dropout(h1, self.drop_ratio)
-        if self.downsample:
-            h1 += self.conv(_without_cudnn(self.p, x))
-        elif self.upsample:
-            h1 += self._upsampling_2d(self.conv(x), self.p)
-        else:
-            h1 += x
-        # h1 = h1 if not self.downsample else h1 + self.bn(self.conv(x))
-        return self.prelu(h1)
+        with chainer.using_config('train', self.train):
+            h1 = self.conv1(x)
+            h1 = self.conv2(h1)
+            h1 = self.conv3(h1)
+            h1 = spatial_dropout(h1, self.drop_ratio)
+            if self.downsample:
+                h1 += self.conv(_without_cudnn(self.p, x))
+            elif self.upsample:
+                h1 += self._upsampling_2d(self.conv(x), self.p)
+            else:
+                h1 += x
+            # h1 = h1 if not self.downsample else h1 + self.bn(self.conv(x))
+            return self.prelu(h1)
 
     def predict(self, x):
         h1 = self.conv1(x)
@@ -243,10 +248,12 @@ class Block(chainer.Chain):
 class Bottleneck2(chainer.Chain):
     """Bottleneck1"""
     def __init__(self, in_ch=3, mid_ch=0, out_ch=13, drop_ratio=0.0,
-                 use_bn=True):
+                 use_bn=True, train=True):
         super(Bottleneck2, self).__init__()
         basic_config = {"in_ch": in_ch, "mid_ch": mid_ch, "out_ch": out_ch,
-                        "drop_ratio": drop_ratio, "use_bn": use_bn}
+                        "drop_ratio": drop_ratio, "use_bn": use_bn,
+                        "train: train"}
+        self.train = train
         with self.init_scope():
             self.block1 = Block(**basic_config)
             self.block2 = Block(**self.to_dilated(basic_config, 2))
@@ -268,15 +275,16 @@ class Bottleneck2(chainer.Chain):
         return config
 
     def __call__(self, x):
-        x = self.block1(x)
-        x = self.block2(x)
-        x = self.block3(x)
-        x = self.block4(x)
-        x = self.block5(x)
-        x = self.block6(x)
-        x = self.block7(x)
-        x = self.block8(x)
-        return x
+        with chainer.using_config('train', self.train):
+            x = self.block1(x)
+            x = self.block2(x)
+            x = self.block3(x)
+            x = self.block4(x)
+            x = self.block5(x)
+            x = self.block6(x)
+            x = self.block7(x)
+            x = self.block8(x)
+            return x
 
     def predict(self, x):
         x = self.block1.predict(x)
@@ -351,14 +359,3 @@ class ENetBasic(chainer.Chain):
             label = self.xp.argmax(x.data, axis=1).astype("i")
             label = chainer.cuda.to_cpu(label)
             return list(label)
-
-    #     h = self._upsampling_2d(h, p4)
-    #     h = self.conv_decode4_bn(self.conv_decode4(h))
-    #     h = self._upsampling_2d(h, p3)
-    #     h = self.conv_decode3_bn(self.conv_decode3(h))
-    #     h = self._upsampling_2d(h, p2)
-    #     h = self.conv_decode2_bn(self.conv_decode2(h))
-    #     h = self._upsampling_2d(h, p1)
-    #     h = self.conv_decode1_bn(self.conv_decode1(h))
-    #     score = self.conv_classifier(h)
-    #     return score
