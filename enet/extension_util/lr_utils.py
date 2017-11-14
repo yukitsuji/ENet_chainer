@@ -8,8 +8,8 @@ from chainer.training import extension
 class PolynomialShift(extension.Extension):
     """Polynomial Shit """
     def __init__(self, power=0.9, stop_trigger=None, batchsize=4,
-                 len_dataset=1):
-        self._attr = 'lr'
+                 len_dataset=1, attr='lr'):
+        self._attr = attr
         self._power = power
         self._init = None
         self._t = 0

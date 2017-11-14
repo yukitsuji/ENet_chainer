@@ -5,8 +5,8 @@
 # typeでBlockまたはBottleneckを設定できる
 # Bottlenecで対応可能なparamは、Defaultのみ
 # """
-end_trigger: [200000, "iteration"]
-results: results/enc_dec_log_weight
+end_trigger: [50000, "iteration"]
+results: results/enc_dec_log_weight_fine
 gpus: [0, 1, 2]
 mode: Train
 seed: 1
@@ -15,8 +15,8 @@ class_weight: ./pretrained_model/log_weight.npy
 model:
   name: ENetBasic
   pretrained_model:
-    path: results/enc_log_weight/enet_98175
-    name: bottleneck2_1
+    path: results/enc_dec_log_weight_fine/enet_49584
+    name: 
   architecture:
     initial_block:
       type: InitialBlock
@@ -27,7 +27,7 @@ model:
         stride: 2
         pad: 1
         nobias: False
-        train: False
+        train: True
 
     bottleneck1_0:
       type: Block
@@ -38,7 +38,7 @@ model:
         downsample: True
         drop_ratio: 0.01
         use_bn: True
-        train: False
+        train: True
 
     bottleneck1_1:
       type: Block
@@ -49,7 +49,7 @@ model:
         out_ch: 64
         drop_ratio: 0.01
         use_bn: True
-        train: False
+        train: True
 
     bottleneck2_0:
       type: Block
@@ -59,7 +59,7 @@ model:
         out_ch: 128
         downsample: 1
         use_bn: True
-        train: False
+        train: True
 
     bottleneck2_1:
       type: Bottleneck2
@@ -70,7 +70,7 @@ model:
         out_ch: 128
         drop_ratio: 0.1
         use_bn: True
-        train: False
+        train: True
 
     bottleneck4_0:
       type: Block
@@ -174,10 +174,11 @@ iterator:
     shared_mem: 8388608
 
 optimizer:
-  name: MomentumSGD
+  name: Adam
   args:
-    lr: 0.005
-    momentum: 0.9
+    alpha: 0.0005
+    beta1: 0.9
+    beta2: 0.999
   hook:
     WeightDecay: 0.0002
 
@@ -208,3 +209,4 @@ extension:
     trigger: [1, 'iteration']
     args:
       power: 0.9
+      attr: alpha
