@@ -5,12 +5,12 @@
 # typeでBlockまたはBottleneckを設定できる
 # Bottlenecで対応可能なparamは、Defaultのみ
 # """
-end_trigger: [50000, "iteration"]
-results: results/enc_dec_log_weight_fine
+end_trigger: [100000, "iteration"]
+results: results/enc_dec_log_weight_fine_fine
 gpus: [0, 1, 2]
 mode: Train
 seed: 1
-class_weight: ./pretrained_model/log_weight.npy
+class_weight: ./pretrained_model/log_12_weight.npy
 
 model:
   name: ENetBasic
