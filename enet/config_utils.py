@@ -104,7 +104,7 @@ def create_extension(trainer, test_iter, model, config, devices=None):
             trigger = parse_trigger(ext['trigger'])
             len_dataset = len(trainer.updater.get_iterator('main').dataset)
             batchsize = trainer.updater.get_iterator('main').batch_size
-            args = parse_dict(config, 'args', {})
+            args = parse_dict(ext, 'args', {})
             args.update({'len_dataset': len_dataset, 'batchsize': batchsize,
                          'stop_trigger': trainer.stop_trigger})
             trainer.extend(cl(**args))
