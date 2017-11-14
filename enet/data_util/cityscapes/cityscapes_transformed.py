@@ -56,6 +56,10 @@ def _transform(inputs, mean=None, crop_size=(512, 512), color_sigma=25.5,
                 label[None, ...].astype(np.float32), crop_size, Image.NEAREST)
             label = label.astype(np.int32)[0]
 
+    # Color augmentation
+    if color_sigma is not None:
+        img = transforms.pca_lighting(img, color_sigma)
+
     # Mean subtraction
     if mean is not None:
         img -= mean[:, None, None]
@@ -65,10 +69,6 @@ def _transform(inputs, mean=None, crop_size=(512, 512), color_sigma=25.5,
         if np.random.rand() > 0.5:
             img = transforms.flip(img, x_flip=True)
             label = transforms.flip(label[None, ...], x_flip=True)[0]
-
-    # Color augmentation
-    if color_sigma is not None:
-        img = transforms.pca_lighting(img, color_sigma)
 
     assert label.max() < n_class, '{}'.format(label.max())
     if crop_size is not None:

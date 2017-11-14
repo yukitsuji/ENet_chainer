@@ -14,7 +14,7 @@ seed: 1
 model:
   name: ENetBasic
   pretrained_model:
-    path: enet_98175 # results/enc1_paper/model.npz
+    path: results/enc_dec_no_weight/enet_98175 # results/enc1_paper/model.npz
     name:
   architecture:
     initial_block:
