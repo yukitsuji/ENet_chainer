@@ -86,27 +86,22 @@ dataset:
       split: train
       ignore_labels: true
       crop_size: [512, 1024]
-      color_sigma: null
-      scale: [0.5, 2.0]
-      rotate: False
+      color_sigma: 25.5
+      scale: [0.5, 0.6]
+      rotate: True
       fliplr: True
       n_class: 19
       scale_label: 8
 
   valid:
-    module: enet.data_util.cityscapes.cityscapes_transformed
-    name: CityscapesTransformedDataset
+    module: enet.data_util.cityscapes.cityscapes_validation_dataset
+    name: CityscapesValidationDataset
     args:
       data_dir: /home/yukitsuji/dataset/Cityscapes
       label_resolution: gtFine
       split: val
       ignore_labels: true
-      crop_size: [512, 1024]
-      color_sigma: null
-      scale: null
-      rotate: False
-      fliplr: False
-      n_class: 19
+      img_size: [512, 1024]
       scale_label: 8
 
 updater:
