@@ -18,6 +18,7 @@ def parse_arg():
     parser.add_argument('--num_classes', type=int, required=True,
                         help='absolute path to your data file')
     parser.add_argument('--dataset', type=str, help="cityscapes or camvid")
+    parser.add_argument('--log_value', type=float, help='Added value in log')
     return parser.parse_args()
 
 def calc_median_frequency(classes, present_num):
@@ -82,7 +83,7 @@ if __name__ == '__main__':
     if args.method == "mean":
         class_weight = calc_median_frequency(classes, present_num)
     elif args.method == "log":
-        class_weight = calc_log_frequency(classes)
+        class_weight = calc_log_frequency(classes, args.log_value)
     else:
         raise Exception("Please assign method to 'mean' or 'log'")
 

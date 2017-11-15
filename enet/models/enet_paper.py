@@ -252,7 +252,7 @@ class Bottleneck2(chainer.Chain):
         super(Bottleneck2, self).__init__()
         basic_config = {"in_ch": in_ch, "mid_ch": mid_ch, "out_ch": out_ch,
                         "drop_ratio": drop_ratio, "use_bn": use_bn,
-                        "train: train"}
+                        "train": train}
         self.train = train
         with self.init_scope():
             self.block1 = Block(**basic_config)
