@@ -2,6 +2,10 @@
 Implementation of ENet by chainer  
 ENet: A Deep Neural Network Architecture for Real-Time Semantic Segmentation [[link](https://arxiv.org/pdf/1606.02147.pdf)]
 
+# Visualization
+<img src="img/img1.png"/>  
+<img src="img/img2.png"/>  
+
 ```
 ######## Training by cityscapes ########
 # Calculate class balancing
