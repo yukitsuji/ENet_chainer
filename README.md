@@ -2,6 +2,12 @@
 Implementation of ENet by chainer  
 ENet: A Deep Neural Network Architecture for Real-Time Semantic Segmentation [[link](https://arxiv.org/pdf/1606.02147.pdf)]
 
+# Result (Cityscapes)
+| Implementation | Image Size | Global accuracy | Class accuracy | mean IoU   |
+|:--------------:|:---------------:|:---------------:|:--------------:|:----------:|
+| **Chainer(val)** |   **512✕1024**  | **92.59 %**   | **71.49 %**     | **59.1 %** |
+| **Original(test)** |   **1024✕2048**  | **-----**   | **----**     | **58.3 %** |
+
 # Visualization
 <img src="img/img1.png"/>  
 <img src="img/img2.png"/>  
@@ -26,9 +32,6 @@ python test.py experiments/test_enc.yml
 ######## Visualize by cityscapes ########
 python demo.py experiments/test_enc.yml --img_path img.png
 ```
-| Implementation | Global accuracy | Class accuracy | mean IoU   |
-|:--------------:|:---------------:|:--------------:|:----------:|
-| Chainer      | 92.59 %          | **71.49 %**     | **59.1 %** |
 
 # Implementation
 - Spatial Dropout using cupy
