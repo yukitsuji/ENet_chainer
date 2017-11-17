@@ -21,14 +21,10 @@ python test.py experiments/test_enc.yml
 
 ######## Visualize by cityscapes ########
 python demo.py experiments/test_enc.yml --img_path img.png
-
-# Test using caffemodel
-## Download ENet caffemodel and convert it to chainer's weight format
-## by using https://github.com/TimoSaemann/ENet/tree/master/enet_weights_zoo
-cd converter && ./enet_weight_download.sh
-# TODO: python caffe_to_chainer.py experiments/paper_enc_dec.yml
-# TODO: python test.py ./experiments/test_caffemodel.yml
 ```
+| Implementation | Global accuracy | Class accuracy | mean IoU   |
+|:--------------:|:---------------:|:--------------:|:----------:|
+| Chainer      | 92.59 %          | **71.49 %**     | **59.1 %** |
 
 # Implementation
 - Spatial Dropout using cupy
