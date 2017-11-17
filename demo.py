@@ -43,8 +43,8 @@ def demo_enet():
         model.to_gpu(devices['main'])
 
     img = read_image(img_path)
-    # img = img.transpose(1, 2, 0)
-    # img = cv2.resize(img, (512, 256)).transpose(2, 0, 1)
+    img = img.transpose(1, 2, 0)
+    img = cv2.resize(img, (1024, 512)).transpose(2, 0, 1)
 
     for i in range(2):
         s = time.time()
@@ -60,6 +60,27 @@ def demo_enet():
         ax=ax)
     ax.legend(handles=legend_handles, bbox_to_anchor=(1.05, 1), loc=2,
               borderaxespad=0.)
+    plot.axis('off')
+    plot.show()
+
+    fig, (ax1, ax2) = plot.subplots(ncols=2, figsize=(10, 3))
+    img = read_image(img_path.replace("leftImg8bit", "gtFine").replace("gtFine.png", "gtFine_color.png"))
+    img = img.transpose(1, 2, 0)
+    ax1.set_title("GroundTruth")
+    img = cv2.resize(img, (1024, 512)).transpose(2, 0, 1)
+    ax1 = vis_image(img, ax1)
+    ax2 = vis_image(img, ax2)
+    ax2, legend_handles = vis_semantic_segmentation(
+        pred,
+        label_colors=cityscapes_label_colors,
+        label_names=cityscapes_label_names,
+        alpha=1.0,
+        ax=ax2)
+    ax2.set_title("Prediction")
+    ax1.axis("off")
+    ax2.axis("off")
+    plot.tight_layout()
+    plot.savefig("./compare.png", dpi=400, bbox_inches='tight')
     plot.show()
     # base = os.path.splitext(os.path.basename(args.img_fn))[0]
     # out_fn = os.path.join(args.out_dir, 'predict_{}.png'.format(base))
